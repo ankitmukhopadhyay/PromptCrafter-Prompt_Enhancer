@@ -1,0 +1,57 @@
+annotated-types @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_1fa2djihwb/croot/annotated-types_1709542925772/work
+anyio @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_d9l4uro_qv/croot/anyio_1745334654441/work
+certifi==2025.8.3
+charset-normalizer==3.4.3
+click @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_2bwamfk1ra/croot/click_1754477943404/work
+dnspython==2.7.0
+email-validator==2.3.0
+fastapi @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_89gzc8olly/croot/fastapi_1724789159605/work
+fastapi-cli==0.0.10
+fastapi-cloud-cli==0.1.5
+filelock==3.19.1
+fsspec==2025.7.0
+h11 @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_557zp2ij9k/croot/h11_1748442489221/work
+hf-xet==1.1.9
+httpcore==1.0.9
+httptools==0.6.4
+httpx==0.28.1
+huggingface-hub==0.34.4
+idna @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_a12xpo84t2/croot/idna_1714398852854/work
+Jinja2==3.1.6
+markdown-it-py==4.0.0
+MarkupSafe==3.0.2
+mdurl==0.1.2
+mpmath==1.3.0
+networkx==3.5
+numpy==2.3.2
+packaging==25.0
+pydantic @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_ac_4dmd4j4/croot/pydantic_1750769074322/work
+pydantic_core @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_9d3ads2bae/croot/pydantic-core_1750754745671/work
+Pygments==2.19.2
+python-dotenv==1.1.1
+python-multipart==0.0.20
+PyYAML==6.0.2
+regex==2025.9.1
+requests==2.32.5
+rich==14.1.0
+rich-toolkit==0.15.0
+rignore==0.6.4
+safetensors==0.6.2
+sentencepiece==0.2.1
+sentry-sdk==2.35.2
+shellingham==1.5.4
+sniffio @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_1573pknjrg/croot/sniffio_1705431298885/work
+starlette @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_21zxgkzlvl/croot/starlette-recipe_1724683207405/work
+sympy==1.14.0
+tokenizers==0.22.0
+torch==2.8.0
+tqdm==4.67.1
+transformers==4.56.0
+typer==0.17.3
+typing-inspection @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_cdhsd2fkb6/croot/typing-inspection_1746023485130/work
+typing_extensions @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_dffmcwqo6o/croot/typing_extensions_1756281471323/work
+urllib3==2.5.0
+uvicorn @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_0dm6hdefmx/croot/uvicorn-split_1751615743028/work
+uvloop==0.21.0
+watchfiles==1.1.0
+websockets==15.0.1
