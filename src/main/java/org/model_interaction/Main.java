@@ -8,11 +8,11 @@ import java.io.InputStreamReader;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Enter a prompt: ");
-        String prompt = br.readLine();
-        GivingInstructions givInst = new GivingInstructions();
-        String refinedPrompt = givInst.PromptRefiner(prompt);
-        System.out.println("Refined Prompt: " + refinedPrompt);
+//        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+//        System.out.println("Enter a prompt: ");
+//        String prompt = br.readLine();
+//        GivingInstructions givInst = new GivingInstructions();
+//        String refinedPrompt = givInst.PromptRefiner(prompt);
+//        System.out.println("Refined Prompt: " + refinedPrompt);
     }
 }

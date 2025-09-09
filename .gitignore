@@ -1,0 +1,164 @@
+*.key
+*.token
+secrets/
+.env
+.env.local
+.env.*.local
+
+# Environment-specific property files with secrets
+application-local.properties
+application-dev.properties
+application-personal.properties
+application-secret.properties
+
+
+# API key files
+api-keys.properties
+huggingface.properties
+openai.properties
+
+# ===== JAVA & MAVEN =====
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+
+# Class files
+*.class
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+
+
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+
+
+# ===== IDE FILES =====
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+
+# VS Code
+.vscode/
+*.code-workspace
+
+
+# ===== OPERATING SYSTEM FILES =====
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ===== LOGS =====
+logs/
+*.log
+*.log.*
+application.log*
+spring.log*
+
+
+
+# ===== TEMPORARY FILES =====
+*.tmp
+*.bak
+*.swp
+*~.nib
+*.orig
+
+
+# ===== DOCKER =====
+.docker/
+docker-compose.override.yml
+.dockerignore
+
+
+
+#====== Dev Directories #=================
+data/
+logs/
+temp/
+config/local.properties
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ===== DATABASE =====
+*.db
+*.sqlite
+*.sqlite3
+h2/
+
+
+# ===== CERTIFICATES =====
+*.pem
+*.crt
+*.csr
+*.key
+*.p12
+*.jks
+
+
+
+
+
+
+
+
+
+
