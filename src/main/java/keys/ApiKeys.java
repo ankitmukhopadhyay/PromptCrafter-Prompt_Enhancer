@@ -4,9 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class ApiKeys {
 
-    @Value("$huggingface.api.token:#{null}}")  private String huggingFaceToken;
+    @Value("$huggingface.api.token:#{null}}")
+    private String huggingFaceToken;
     public String getHuggingFaceToken() {
-        if (huggingFaceToken != null) {
+        if (huggingFaceToken != null && !huggingFaceToken.isEmpty())   {
             return huggingFaceToken;
         }
 

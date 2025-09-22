@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.regex.Pattern;
 
@@ -16,6 +15,7 @@ import java.util.regex.Pattern;
  */
 @Service
 public class LangChain4jService {
+
     private static final Logger logger = LoggerFactory.getLogger(LangChain4jService.class);
 
     @Value("${app.huggingface.api-key}")

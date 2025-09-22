@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   prompt-crafter:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: prompt-crafter-dev
     ports:
       - "8080:8080"
@@ -12,7 +14,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./config:/app/config
-      - ./temp:/app/temp # DOWNLOAD MODELS OR CACHE
+      - ./temp:/app/temp # e
 
 
 
