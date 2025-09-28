@@ -1,6 +1,6 @@
 package com.promptcrafter.backend.service.ai;
 
-import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,17 +11,17 @@ import java.util.regex.Pattern;
 
 /**
  * Service component responsible for AI-powered text enhancement using LangChain4j framework.
- * This service integrates with Hugging Face models to provide intelligent prompt enhancement
+ * This service integrates with OpenAI models to provide intelligent prompt enhancement
  * and includes robust fallback mechanisms for reliability.
  */
 @Service
 public class LangChain4jService {
     private static final Logger logger = LoggerFactory.getLogger(LangChain4jService.class);
 
-    @Value("${app.huggingface.api-key}")
+    @Value("${app.openai.api-key}")
     private String apiKey;
 
-    private HuggingFaceChatModel chatModel;
+    private OpenAiChatModel chatModel;
     private boolean modelInitialized = false;
 
     /**
@@ -46,7 +46,7 @@ public class LangChain4jService {
             }
 
             if (chatModel != null && !"demo-key".equals(apiKey)) {
-                logger.info("Using Hugging Face AI model for enhancement");
+                logger.info("Using OpenAI AI model for enhancement");
                 String response = chatModel.generate(promptTemplate);
                 String cleanedResponse = cleanResponse(response);
                 logger.debug("AI enhancement completed successfully");
@@ -66,26 +66,24 @@ public class LangChain4jService {
      * Initializes the Hugging Face chat model with configuration settings.
      * Performs lazy initialization to avoid unnecessary API calls and handles
      * configuration errors gracefully.
-     *
      * @throws RuntimeException if model initialization fails critically
      */
     private void initializeChatModel() {
         try {
             if (!"demo-key".equals(apiKey) && apiKey != null && !apiKey.trim().isEmpty()) {
-                logger.info("Initializing Hugging Face chat model");
-                this.chatModel = HuggingFaceChatModel.builder()
-                        .accessToken(apiKey)
-                        .modelId("microsoft/DialoGPT-medium")
+                logger.info("Initializing OpenAI chat model");
+                this.chatModel = OpenAiChatModel.builder()
+                        .apiKey(apiKey)
+                        .modelName("gpt-3.5-turbo")
                         .timeout(Duration.ofSeconds(30))
                         .build();
-                modelInitialized = true;
-                logger.info("Hugging Face model initialized successfully");
+                logger.info("OpenAI model initialized successfully");
             } else {
                 logger.info("No valid API key found, will use fallback enhancement");
                 modelInitialized = true;
             }
         } catch (Exception e) {
-            logger.error("Failed to initialize Hugging Face model: {}", e.getMessage());
+            logger.error("Failed to initialize OpenAI model: {}", e.getMessage());
             modelInitialized = true; // Mark as attempted to avoid retries
         }
     }
