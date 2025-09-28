@@ -48,7 +48,7 @@ public class PromptTemplateBuilder {
                 Enhanced version:""";
 
             case ACADEMIC -> """
-                Task: Transform the following prompt into an academic research format.
+                Task: Rewrite the following prompt to be more academic and suitable for academic research.
                 
                 Original prompt: {original_prompt}
                 
@@ -63,7 +63,7 @@ public class PromptTemplateBuilder {
                 Enhanced version:""";
 
             case DETAILED -> """
-                Task: Expand the following prompt with comprehensive details and context.
+                Task: Rewrite the following prompt, expanding it with comprehensive details and context.
                 
                 Original prompt: {original_prompt}
                 

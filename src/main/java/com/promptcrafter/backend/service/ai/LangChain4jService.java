@@ -1,5 +1,8 @@
 package com.promptcrafter.backend.service.ai;
 
+import com.promptcrafter.backend.enums.ContextType;
+import com.promptcrafter.backend.enums.EnhancementStyle;
+import com.promptcrafter.backend.templates.PromptTemplateBuilder;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +50,41 @@ public class LangChain4jService {
 
             if (chatModel != null && !"demo-key".equals(apiKey)) {
                 logger.info("Using OpenAI AI model for enhancement");
-                String response = chatModel.generate(promptTemplate);
+                PromptTemplateBuilder pb = new PromptTemplateBuilder();
+                String response = "";
+                if (promptTemplate.toLowerCase().contains("concise")) {
+                    if (promptTemplate.toLowerCase().contains("chatgpt")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CONCISE, ContextType.CHATGPT));
+                    } else if (promptTemplate.toLowerCase().contains("google_scholar")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CONCISE, ContextType.GOOGLE_SCHOLAR));
+                    } else {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CONCISE, ContextType.GENERAL));
+                    }
+                } else if (promptTemplate.toLowerCase().contains("academic")) {
+                    if (promptTemplate.toLowerCase().contains("chatgpt")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.ACADEMIC, ContextType.CHATGPT));
+                    } else if (promptTemplate.toLowerCase().contains("google_scholar")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.ACADEMIC, ContextType.GOOGLE_SCHOLAR));
+                    } else {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.ACADEMIC, ContextType.GENERAL));
+                    }
+                } else if (promptTemplate.toLowerCase().contains("creative")) {
+                    if (promptTemplate.toLowerCase().contains("chatgpt")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CREATIVE, ContextType.CHATGPT));
+                    } else if (promptTemplate.toLowerCase().contains("google_scholar")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CREATIVE, ContextType.GOOGLE_SCHOLAR));
+                    } else {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.CREATIVE, ContextType.GENERAL));
+                    }
+                } else {
+                    if (promptTemplate.toLowerCase().contains("chatgpt")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.DETAILED, ContextType.CHATGPT));
+                    } else if (promptTemplate.toLowerCase().contains("google_scholar")) {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.DETAILED, ContextType.GOOGLE_SCHOLAR));
+                    } else {
+                        response = chatModel.generate(pb.buildEnhancementPrompt(promptTemplate, EnhancementStyle.DETAILED, ContextType.GENERAL));
+                    }
+                }
                 String cleanedResponse = cleanResponse(response);
                 logger.debug("AI enhancement completed successfully");
                 return cleanedResponse;
@@ -74,7 +111,8 @@ public class LangChain4jService {
                 logger.info("Initializing OpenAI chat model");
                 this.chatModel = OpenAiChatModel.builder()
                         .apiKey(apiKey)
-                        .modelName("gpt-3.5-turbo")
+                        .modelName("gpt-4o-mini")
+                        .temperature(0.2)
                         .timeout(Duration.ofSeconds(30))
                         .build();
                 logger.info("OpenAI model initialized successfully");
