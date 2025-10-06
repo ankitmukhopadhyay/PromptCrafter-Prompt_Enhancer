@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "PromptCrafter",
+  "version": "0.1.0",
+  "description": "Rewrite prompts with different styles via backend API",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "http://localhost:8080/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PromptCrafter"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chat.openai.com/*", "https://scholar.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
