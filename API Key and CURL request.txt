@@ -1,0 +1,8 @@
+curl -X POST http://localhost:8080/api/rewrite ^
+  -H "Content-Type: application/json" ^
+  -d "{\"originalText\":\"Explain the effects of climate change on coral reefs.\",\"style\":\"DETAILED\",\"context\":\"GENERAL\"}"
+
+  Choose Style: CONCISE, ACADEMIC, DETAILED, CREATIVE
+  Choose Context: GENERAL, CHATGPT, GOOGLE_SCHOLAR
+
+OPENAI_API_KEY=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
