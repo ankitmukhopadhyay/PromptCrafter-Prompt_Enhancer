@@ -41,3 +41,4 @@ _**PromptCrafter is a web application that enhances user prompts using AI and ru
 
 ### __Current Next Step:__
 - Prompt history implementation, database integration.
+- Frontend UI enhancements.
