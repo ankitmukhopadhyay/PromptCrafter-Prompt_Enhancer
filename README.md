@@ -1,10 +1,10 @@
-#PromptCrafter#
+# PromptCrafter
 
 **PromptCrafter is a web application that enhances user prompts using AI and rule-based methods.**
 
-###**Team Members:**
-***Mohamed Sharif**
-***Ankit Mukhopadhyay**
+### Team Members:
+* Mohamed Sharif
+* Ankit Mukhopadhyay
 
 Tech Stack:
 - Spring Boot
