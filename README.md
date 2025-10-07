@@ -6,27 +6,27 @@
 * Mohamed Sharif
 * Ankit Mukhopadhyay
 
-Tech Stack:
+### Tech Stack:
 - Spring Boot
 - Java
 - MySQL
 - LangChain4j
 - OpenAI
 
-Problems Faced:
+### Problems Faced:
 - HuggingFace API was not working, so had to switch to OpenAI API for model integration.
 
-API Usage:
+### API Usage:
 - Original prompt is put into a prompt template with the style and context.
 - The prompt template is then sent to the OpenAI API for enhancement.
 - The enhanced text, which is the enhanced prompt, is then returned to the user.
 
-Use of AI:
+### Use of AI:
 - implementation for the browser extension (with the popup html, css and js files).
 - implementation for the database (with the entity classes and the repository interfaces).
 - implementation for the frontend (with the prompt history response and the prompt response).
 - implementation for the API (with the prompt enhancement controller and the prompt enhancement service).
 - implementation for the API key and the curl request.
 
-Current Next Step:
+### Current Next Step:
 - Prompt history implementation, database integration.
