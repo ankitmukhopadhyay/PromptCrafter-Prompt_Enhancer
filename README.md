@@ -1,6 +1,6 @@
 # PromptCrafter
 
-**PromptCrafter is a web application that enhances user prompts using AI and rule-based methods.**
+_**PromptCrafter is a web application that enhances user prompts using AI and rule-based methods.**_
 
 ### Team Members:
 * Mohamed Sharif
