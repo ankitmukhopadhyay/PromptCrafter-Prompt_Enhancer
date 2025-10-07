@@ -13,6 +13,14 @@
 - LangChain4j
 - OpenAI
 
+### Process:
+- User enters the original prompt, and chooses the style and the context from the dropdown menus.
+- The request is passed as a curl request, to the API rewrite endpoint.
+- The API endpoint then calls the prompt enhancement service, as the original prompt is then put into the prompt template. The template contains the original prompt, and detailed instruction to enhance the prompt, according to the style and context chosen by the user.
+- The prompt template is then sent to the OpenAI API for enhancement.
+- The enhanced text, which is the enhanced prompt, is then returned to the API endpoint.
+- The API endpoint then returns the enhanced text to the user.
+
 ### Problems Faced:
 - HuggingFace API was not working, so had to switch to OpenAI API for model integration.
 - Had to do lots of modifications and testing for the prompt template builder, to get the optimal results for each of the classification of the prompts.
@@ -21,7 +29,8 @@
 ### API Usage:
 - Original prompt is put into a prompt template with the style and context.
 - The prompt template is then sent to the OpenAI API for enhancement.
-- The enhanced text, which is the enhanced prompt, is then returned to the user.
+- The enhanced text, which is the enhanced prompt, is then returned to the API endpoint.
+- The API endpoint then returns the enhanced text to the user.
 
 ### Use of AI:
 - implementation for the browser extension (with the popup html, css and js files).
