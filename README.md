@@ -15,6 +15,8 @@
 
 ### Problems Faced:
 - HuggingFace API was not working, so had to switch to OpenAI API for model integration.
+- Had to do lots of modifications and testing for the prompt template builder, to get the optimal results for each of the classification of the prompts.
+- The "DETAILED" prompt style works the best, along with the context "GENERAL". Others work fine, but can be improved, perhaps with more optimal prompt template modifications for each of the classification of the prompts.
 
 ### API Usage:
 - Original prompt is put into a prompt template with the style and context.
