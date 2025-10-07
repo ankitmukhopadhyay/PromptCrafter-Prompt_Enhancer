@@ -1,4 +1,4 @@
-#PromptCrafter
+#PromptCrafter#
 
 **PromptCrafter is a web application that enhances user prompts using AI and rule-based methods.**
 
