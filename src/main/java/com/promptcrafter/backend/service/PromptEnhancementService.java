@@ -1,5 +1,6 @@
 package com.promptcrafter.backend.service;
 
+import com.promptcrafter.backend.dto.PromptHistoryResponse;
 import com.promptcrafter.backend.dto.PromptRequest;
 import com.promptcrafter.backend.dto.PromptResponse;
 
@@ -17,4 +18,12 @@ public interface PromptEnhancementService {
      * @return Enhanced prompt response with success status and enhanced text
      */
     PromptResponse enhancePrompt(PromptRequest request);
+
+    /**
+     * Retrieves recent prompt enhancement history for display in the frontend
+     *
+     * @param limit Maximum number of history items to return
+     * @return History response containing recent prompts and their enhancements
+     */
+    PromptHistoryResponse getPromptHistory(int limit);
 }
