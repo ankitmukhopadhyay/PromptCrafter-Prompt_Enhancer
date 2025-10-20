@@ -8,4 +8,12 @@ import java.util.List;
 
 public interface EnhancementRecordRepository extends JpaRepository<EnhancementRecord, Long> {
     List<EnhancementRecord> findByPrompt(Prompt prompt);
+
+    /**
+     * Find the most recent enhancement records ordered by creation date (newest first)
+     *
+     * @param limit Maximum number of records to return
+     * @return List of recent enhancement records
+     */
+    List<EnhancementRecord> findTop10ByOrderByCreatedAtDesc();
 }
