@@ -15,8 +15,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('errorSection');
     const errorMessage = document.getElementById('errorMessage');
 
+    // History elements
+    const historySection = document.getElementById('historySection');
+    const historyList = document.getElementById('historyList');
+    const historyLoading = document.getElementById('historyLoading');
+    const historyEmpty = document.getElementById('historyEmpty');
+
     // API endpoint - matches your Spring Boot backend
     const API_BASE_URL = 'http://localhost:8080/api';
+
+    let currentHistory = [];
+    let activeHistoryItem = null;
 
     /**
      * Show loading state
@@ -107,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const enhancedText = await enhancePrompt(originalText, style, context);
             showResult(enhancedText);
+            refreshHistory(); // Update history to show the new enhancement
         } catch (error) {
             showError(error.message);
         } finally {
@@ -190,8 +200,131 @@ document.addEventListener('DOMContentLoaded', function() {
             'google_search': 'GOOGLE_SCHOLAR'
         };
 
-        const dropdownValue = contextMap[context] || 'GENERAL';
-        contextTypeSelect.value = dropdownValue;
+    }
+
+    /**
+     * Load prompt history from the backend API
+     */
+    async function loadHistory() {
+        try {
+            historyLoading.style.display = 'block';
+            historyEmpty.style.display = 'none';
+            historyList.innerHTML = '';
+
+            const response = await fetch(`${API_BASE_URL}/history?limit=10`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.history && data.history.length > 0) {
+                currentHistory = data.history;
+                displayHistory(data.history);
+            } else {
+                showEmptyHistory();
+            }
+
+        } catch (error) {
+            console.error('Failed to load history:', error);
+            showEmptyHistory();
+        } finally {
+            historyLoading.style.display = 'none';
+        }
+    }
+
+    /**
+     * Display history items in the UI
+     */
+    function displayHistory(historyItems) {
+        historyList.innerHTML = '';
+
+        historyItems.forEach((item, index) => {
+            const historyItem = createHistoryItemElement(item, index);
+            historyList.appendChild(historyItem);
+        });
+
+        historySection.style.display = 'block';
+    }
+
+    /**
+     * Create a history item element
+     */
+    function createHistoryItemElement(item, index) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.dataset.index = index;
+
+        const originalText = document.createElement('div');
+        originalText.className = 'history-original';
+        originalText.textContent = item.originalText;
+        originalText.title = item.originalText; // Full text on hover
+
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+
+        const styleBadge = document.createElement('span');
+        styleBadge.className = 'history-style';
+        styleBadge.textContent = item.enhancementStyle;
+
+        const contextBadge = document.createElement('span');
+        contextBadge.className = 'history-context';
+        contextBadge.textContent = item.context;
+
+        meta.appendChild(styleBadge);
+        meta.appendChild(contextBadge);
+
+        div.appendChild(originalText);
+        div.appendChild(meta);
+
+        div.addEventListener('click', () => selectHistoryItem(index));
+
+        return div;
+    }
+
+    /**
+     * Handle clicking on a history item
+     */
+    function selectHistoryItem(index) {
+        // Remove active class from all items
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Add active class to selected item
+        const selectedItem = document.querySelector(`[data-index="${index}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+            activeHistoryItem = index;
+        }
+
+        // Load the selected prompt into the form
+        const item = currentHistory[index];
+        if (item) {
+            originalPromptTextarea.value = item.originalText;
+            enhancementStyleSelect.value = item.enhancementStyle;
+            contextTypeSelect.value = item.context;
+        }
+    }
+
+    /**
+     * Show empty history state
+     */
+    function showEmptyHistory() {
+        historyEmpty.style.display = 'block';
+        historyList.innerHTML = '';
+        historySection.style.display = 'block';
+    }
+
+    /**
+     * Refresh history after a new enhancement
+     */
+    function refreshHistory() {
+        // Reload history to show the new item
+        setTimeout(() => {
+            loadHistory();
+        }, 1000); // Small delay to ensure backend has processed the new record
     }
 
     // Event listeners
@@ -200,6 +333,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-detect context when popup opens
     autoDetectContext();
+
+    // Load history on startup
+    loadHistory();
 
     console.log('PromptCrafter popup loaded successfully');
 });
