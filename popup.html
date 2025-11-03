@@ -10,6 +10,21 @@
     <div class="container">
         <h1>PromptCrafter</h1>
 
+        <!-- History Section -->
+        <div class="history-section" id="historySection">
+            <h2>📝 Recent Prompts</h2>
+            <div id="historyList" class="history-list">
+                <!-- History items will be populated here -->
+            </div>
+            <div id="historyLoading" class="history-loading" style="display: none;">
+                Loading history...
+            </div>
+            <div id="historyEmpty" class="history-empty" style="display: none;">
+                No recent prompts yet. Start enhancing to see your history here!
+            </div>
+        </div>
+
+        <!-- Main Form Section -->
         <div class="form-section">
             <label for="originalPrompt">Original Prompt:</label>
             <textarea
