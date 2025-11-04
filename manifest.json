@@ -27,6 +27,7 @@
     {
       "matches": [
         "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
         "https://scholar.google.com/*",
         "https://www.google.com/search*"
       ],
