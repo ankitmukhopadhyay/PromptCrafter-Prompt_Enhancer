@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptCrafter Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ PromptCrafter Settings</h1>
+
+        <div class="settings-section">
+            <h2>🔑 API Configuration</h2>
+
+            <div class="setting-item">
+                <label for="apiKey">OpenAI API Key:</label>
+                <div class="input-with-button">
+                    <input type="password" id="apiKey" placeholder="sk-...">
+                    <button id="toggleApiKey" class="toggle-btn">👁️</button>
+                </div>
+                <small class="setting-description">
+                    Your OpenAI API key for enhanced AI responses. Leave empty to use demo mode.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label for="apiEndpoint">API Endpoint:</label>
+                <input type="url" id="apiEndpoint" placeholder="http://localhost:8080">
+                <small class="setting-description">
+                    Backend API endpoint. Use localhost for development, production URL for live use.
+                </small>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>🎨 User Preferences</h2>
+
+            <div class="setting-item">
+                <label for="defaultStyle">Default Enhancement Style:</label>
+                <select id="defaultStyle">
+                    <option value="DETAILED">Detailed</option>
+                    <option value="CONCISE">Concise</option>
+                    <option value="ACADEMIC">Academic</option>
+                    <option value="CREATIVE">Creative</option>
+                </select>
+                <small class="setting-description">
+                    Default style selected when opening the extension.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label for="defaultContext">Default Context:</label>
+                <select id="defaultContext">
+                    <option value="GENERAL">General</option>
+                    <option value="CHATGPT">ChatGPT</option>
+                    <option value="GOOGLE_SCHOLAR">Google Scholar</option>
+                </select>
+                <small class="setting-description">
+                    Default context based on where you typically use the extension.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="autoDetectContext">
+                    <span class="checkmark"></span>
+                    Auto-detect context based on current page
+                </label>
+                <small class="setting-description">
+                    Automatically set context (ChatGPT/Scholar) based on the website you're visiting.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showNotifications">
+                    <span class="checkmark"></span>
+                    Show desktop notifications
+                </label>
+                <small class="setting-description">
+                    Display notifications for successful enhancements and errors.
+                </small>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>📊 Usage Statistics</h2>
+
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalEnhancements">0</div>
+                    <div class="stat-label">Total Enhancements</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgResponseTime">0ms</div>
+                    <div class="stat-label">Avg Response Time</div>
+                </div>
+            </div>
+
+            <button id="resetStats" class="secondary-btn">Reset Statistics</button>
+        </div>
+
+        <div class="settings-section">
+            <h2>🔧 Advanced Settings</h2>
+
+            <div class="setting-item">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enableLogging">
+                    <span class="checkmark"></span>
+                    Enable debug logging
+                </label>
+                <small class="setting-description">
+                    Log detailed information to browser console for troubleshooting.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label for="maxRetries">Max Retry Attempts:</label>
+                <input type="number" id="maxRetries" min="0" max="5" value="3">
+                <small class="setting-description">
+                    Number of times to retry failed API requests.
+                </small>
+            </div>
+
+            <div class="setting-item">
+                <label for="requestTimeout">Request Timeout (seconds):</label>
+                <input type="number" id="requestTimeout" min="5" max="60" value="30">
+                <small class="setting-description">
+                    Maximum time to wait for API responses before timing out.
+                </small>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="saveSettings" class="primary-btn">💾 Save Settings</button>
+            <button id="exportSettings" class="secondary-btn">📤 Export Settings</button>
+            <button id="importSettings" class="secondary-btn">📥 Import Settings</button>
+        </div>
+
+        <div id="saveStatus" class="save-status" style="display: none;">
+            Settings saved successfully!
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
