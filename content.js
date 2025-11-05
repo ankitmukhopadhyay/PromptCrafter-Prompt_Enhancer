@@ -282,26 +282,166 @@ class PromptCrafterInjector {
     }
 
     injectScholarEnhancer() {
-        const searchSelectors = [
-            'input[name="q"]',
-            'input[aria-label*="search"]',
-            'input[type="text"]'
-        ];
+        console.log('PromptCrafter: Starting Google Scholar enhancer injection');
+
+        let attempts = 0;
+        const maxAttempts = 10;
 
         const checkForSearchBox = () => {
+            attempts++;
+            console.log(`PromptCrafter: Scholar attempt ${attempts}/${maxAttempts} - Checking for search box...`);
+
+            // More specific selectors for Google Scholar search box
+            const searchSelectors = [
+                'input[name="q"][type="text"]', // Primary Google Scholar search box
+                'input[aria-label*="earch" i]', // Contains "search" (case insensitive)
+                'input[type="text"][maxlength]', // Text inputs with maxlength
+                '.gs_in_txt input[type="text"]', // Google Scholar specific class
+                'form input[type="text"]:not([name="btnG"])' // Form inputs excluding submit buttons
+            ];
+
             for (const selector of searchSelectors) {
                 const inputs = document.querySelectorAll(selector);
                 for (const input of inputs) {
-                    if (input && this.isVisible(input) && input.offsetWidth > 200) {
-                        this.addEnhancementButton(input, 'scholar');
-                        return;
+                    if (this.isScholarSearchBox(input)) {
+                        console.log('PromptCrafter: ✅ Found Google Scholar search box:', {
+                            selector: selector,
+                            input: input,
+                            value: input.value,
+                            placeholder: input.placeholder
+                        });
+                        this.addScholarEnhancementButton(input);
+                        return true;
                     }
                 }
             }
-            setTimeout(checkForSearchBox, 1000);
+
+            // Also check for general search inputs in scholar.google.com
+            if (window.location.hostname === 'scholar.google.com') {
+                const allInputs = document.querySelectorAll('input[type="text"]');
+                for (const input of allInputs) {
+                    if (this.isScholarSearchBox(input) && input.offsetWidth > 300) {
+                        console.log('PromptCrafter: ✅ Found Google Scholar search box (fallback):', input);
+                        this.addScholarEnhancementButton(input);
+                        return true;
+                    }
+                }
+            }
+
+            // Retry if we haven't exceeded max attempts
+            if (attempts < maxAttempts) {
+                console.log(`PromptCrafter: Retrying Scholar search in 1 second... (${maxAttempts - attempts} attempts left)`);
+                setTimeout(checkForSearchBox, 1000);
+            } else {
+                console.log('PromptCrafter: ❌ Max attempts reached. Could not find Google Scholar search box.');
+            }
+
+            return false;
         };
 
-        checkForSearchBox();
+        // Wait a bit for Google Scholar to load
+        setTimeout(() => {
+            console.log('PromptCrafter: Starting Google Scholar search box detection...');
+            checkForSearchBox();
+        }, 500);
+    }
+
+    isScholarSearchBox(input) {
+        // Validate this is a Google Scholar search box
+        const rect = input.getBoundingClientRect();
+        const isLargeEnough = rect.width > 200 && rect.height > 15;
+        const isVisible = this.isVisible(input);
+        const isNotHidden = window.getComputedStyle(input).display !== 'none';
+
+        // Check for Scholar-specific attributes
+        const hasScholarClass = input.closest('.gs_in_txt') !== null;
+        const hasSearchPlaceholder = /search|query|term/i.test(input.placeholder || '');
+        const hasScholarName = input.name === 'q';
+        const isInScholarForm = input.closest('form') && input.closest('form').action &&
+                               input.closest('form').action.includes('scholar');
+
+        // Google Scholar search box should be prominent and in the right context
+        return isLargeEnough && isVisible && isNotHidden &&
+               (hasScholarClass || hasSearchPlaceholder || hasScholarName || isInScholarForm);
+    }
+
+    addScholarEnhancementButton(inputElement) {
+        // Prevent duplicate buttons
+        const existingBtn = document.querySelector('.scholar-enhance-btn');
+        if (existingBtn) {
+            console.log('PromptCrafter: Scholar button already exists, skipping...');
+            return;
+        }
+
+        console.log('PromptCrafter: Creating Scholar enhance button');
+
+        // Store reference to input element
+        this.scholarInput = inputElement;
+
+        const button = document.createElement('button');
+        button.id = 'scholar-enhance-btn';
+        button.className = 'scholar-enhance-btn';
+        button.innerHTML = '🎓 Enhance Query';
+        button.title = 'Enhance your academic search query (ACADEMIC style, GOOGLE_SCHOLAR context)';
+
+        // Position relative to the search input
+        const inputRect = inputElement.getBoundingClientRect();
+        button.style.cssText = `
+            position: absolute !important;
+            top: 50% !important;
+            right: 10px !important;
+            transform: translateY(-50%) !important;
+            z-index: 1000 !important;
+            background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 6px 12px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.3) !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            white-space: nowrap !important;
+        `;
+
+        button.onmouseover = () => {
+            button.style.transform = 'translateY(-50%) scale(1.05)';
+            button.style.boxShadow = '0 3px 6px rgba(44, 82, 130, 0.4)';
+        };
+
+        button.onmouseout = () => {
+            button.style.transform = 'translateY(-50%) scale(1)';
+            button.style.boxShadow = '0 2px 4px rgba(44, 82, 130, 0.3)';
+        };
+
+        button.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('PromptCrafter: Scholar enhance button clicked!');
+            this.handleScholarEnhancement(inputElement);
+        };
+
+        // Make input container relative positioned if needed
+        const container = inputElement.parentNode;
+        if (container && window.getComputedStyle(container).position === 'static') {
+            container.style.position = 'relative';
+        }
+
+        container.appendChild(button);
+        console.log('PromptCrafter: ✅ Scholar enhance button added to search box');
+
+        // Verify button was added
+        setTimeout(() => {
+            const checkBtn = document.getElementById('scholar-enhance-btn');
+            console.log('PromptCrafter: Scholar button check after 1s:', {
+                exists: !!checkBtn,
+                visible: checkBtn ? this.isVisible(checkBtn) : false,
+                position: checkBtn ? checkBtn.getBoundingClientRect() : null
+            });
+        }, 1000);
     }
 
     addEnhancementButton(inputElement, siteType) {
@@ -382,7 +522,7 @@ class PromptCrafterInjector {
         const originalText = this.extractText(inputElement);
 
         if (!originalText) {
-            this.showNotification('Please enter some text to enhance', 'warning');
+            this.showNotification('Please enter a prompt to enhance', 'warning');
             return;
         }
 
@@ -390,11 +530,18 @@ class PromptCrafterInjector {
         this.showLoading(inputElement);
 
         try {
-            const enhancedText = await this.enhanceWithAPI(originalText, this.context);
+            // Determine context based on site type
+            let context = 'GENERAL'; // Default
+            if (siteType === 'chatgpt') {
+                context = 'CHATGPT';
+            } else if (siteType === 'google_scholar') {
+                context = 'GOOGLE_SCHOLAR';
+            }
 
-            // Auto-insert enhanced text
-            console.log('PromptCrafter: Preparing to insert enhanced text...');
-            // Small delay to let React finish any pending updates
+            const enhancedText = await this.enhanceWithAPI(originalText, context);
+
+            // Insert enhanced text
+            console.log('PromptCrafter: Preparing to insert enhanced prompt...');
             setTimeout(() => {
                 this.insertEnhancedText(inputElement, enhancedText);
             }, 100);
@@ -409,7 +556,31 @@ class PromptCrafterInjector {
         }
     }
 
+    showScholarLoading(inputElement) {
+        const button = document.getElementById('scholar-enhance-btn');
+        if (button) {
+            button.textContent = '⏳ Enhancing...';
+            button.disabled = true;
+            button.style.opacity = '0.7';
+        }
+    }
+
+    hideScholarLoading(inputElement) {
+        const button = document.getElementById('scholar-enhance-btn');
+        if (button) {
+            button.textContent = '🎓 Enhance Query';
+            button.disabled = false;
+            button.style.opacity = '1';
+        }
+    }
+
     async enhanceWithAPI(text, context) {
+        // Choose appropriate style based on context
+        let style = 'DETAILED'; // Default style
+        if (context === 'GOOGLE_SCHOLAR') {
+            style = 'ACADEMIC'; // Academic style for scholarly search queries
+        }
+
         const response = await fetch(`${this.apiBaseUrl}/rewrite`, {
             method: 'POST',
             headers: {
@@ -417,8 +588,8 @@ class PromptCrafterInjector {
             },
             body: JSON.stringify({
                 originalText: text,
-                style: 'DETAILED', // DETAILED style for comprehensive enhancement
-                context: context || 'GENERAL' // GENERAL context by default
+                style: style,
+                context: context || 'GENERAL'
             })
         });
 
@@ -468,20 +639,30 @@ class PromptCrafterInjector {
     }
 
     showLoading(inputElement) {
-        const button = inputElement.parentNode.querySelector('.promptcrafter-btn');
+        // Handle different button types
+        const chatGPTBtn = document.getElementById('promptcrafter-enhance-btn');
+        const scholarBtn = document.getElementById('scholar-enhance-btn');
+        const genericBtn = inputElement.parentNode.querySelector('.promptcrafter-btn');
+
+        const button = chatGPTBtn || scholarBtn || genericBtn;
         if (button) {
             button.textContent = '⏳ Enhancing...';
             button.disabled = true;
-            button.classList.add('loading');
+            button.style.opacity = '0.7';
         }
     }
 
     hideLoading(inputElement) {
-        const button = inputElement.parentNode.querySelector('.promptcrafter-btn');
+        // Handle different button types
+        const chatGPTBtn = document.getElementById('promptcrafter-enhance-btn');
+        const scholarBtn = document.getElementById('scholar-enhance-btn');
+        const genericBtn = inputElement.parentNode.querySelector('.promptcrafter-btn');
+
+        const button = chatGPTBtn || scholarBtn || genericBtn;
         if (button) {
-            button.textContent = '✨ Enhance';
+            button.textContent = button.id === 'scholar-enhance-btn' ? '🎓 Enhance Query' : '✨ Enhance Prompt';
             button.disabled = false;
-            button.classList.remove('loading');
+            button.style.opacity = '1';
         }
     }
 
