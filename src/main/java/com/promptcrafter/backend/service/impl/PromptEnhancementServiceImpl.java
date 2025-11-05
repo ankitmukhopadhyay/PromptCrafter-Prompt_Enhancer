@@ -14,6 +14,7 @@ import com.promptcrafter.backend.service.ai.LangChain4jService;
 import com.promptcrafter.backend.templates.PromptTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -174,9 +175,12 @@ public class PromptEnhancementServiceImpl implements PromptEnhancementService {
 
         try {
             // Query for recent enhancement records with their associated prompts
-            // Order by creation date (newest first)
+            // Order by creation date (newest first), respecting the limit parameter
             List<EnhancementRecord> recentRecords = enhancementRecordRepository
-                .findTop10ByOrderByCreatedAtDesc();
+                .findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .limit(limit)
+                .toList();
 
             // Convert to DTO format for frontend consumption
             List<PromptHistoryResponse.HistoryItem> historyItems = recentRecords.stream()
