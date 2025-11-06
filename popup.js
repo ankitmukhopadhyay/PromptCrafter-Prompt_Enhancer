@@ -249,12 +249,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Create a history item element
+     * Create a history item element with expandable functionality
      */
     function createHistoryItemElement(item, index) {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.dataset.index = index;
+
+        // Header section (always visible)
+        const header = document.createElement('div');
+        header.className = 'history-header';
 
         const originalText = document.createElement('div');
         originalText.className = 'history-original';
@@ -272,21 +276,104 @@ document.addEventListener('DOMContentLoaded', function() {
         contextBadge.className = 'history-context';
         contextBadge.textContent = item.context;
 
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'history-toggle';
+        toggleBtn.innerHTML = '▼';
+        toggleBtn.title = 'Show enhanced text';
+
         meta.appendChild(styleBadge);
         meta.appendChild(contextBadge);
+        meta.appendChild(toggleBtn);
 
-        div.appendChild(originalText);
-        div.appendChild(meta);
+        header.appendChild(originalText);
+        header.appendChild(meta);
 
-        div.addEventListener('click', () => selectHistoryItem(index));
+        // Expandable content section
+        const expanded = document.createElement('div');
+        expanded.className = 'history-expanded';
+        expanded.style.display = 'none';
+
+        // Enhanced text section
+        const enhancedSection = document.createElement('div');
+        enhancedSection.className = 'history-enhanced-section';
+
+        const enhancedLabel = document.createElement('div');
+        enhancedLabel.className = 'history-enhanced-label';
+        enhancedLabel.textContent = 'Enhanced:';
+
+        const enhancedText = document.createElement('div');
+        enhancedText.className = 'history-enhanced-text';
+        enhancedText.textContent = item.enhancedText;
+        enhancedText.title = item.enhancedText; // Full text on hover
+
+        enhancedSection.appendChild(enhancedLabel);
+        enhancedSection.appendChild(enhancedText);
+
+        // Action buttons
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const reuseOriginalBtn = document.createElement('button');
+        reuseOriginalBtn.className = 'history-action-btn reuse-original';
+        reuseOriginalBtn.textContent = 'Reuse Original';
+        reuseOriginalBtn.title = 'Load original text into the form';
+
+        const reuseEnhancedBtn = document.createElement('button');
+        reuseEnhancedBtn.className = 'history-action-btn reuse-enhanced';
+        reuseEnhancedBtn.textContent = 'Reuse Enhanced';
+        reuseEnhancedBtn.title = 'Load enhanced text into the form';
+
+        const copyEnhancedBtn = document.createElement('button');
+        copyEnhancedBtn.className = 'history-action-btn copy-enhanced';
+        copyEnhancedBtn.textContent = 'Copy Enhanced';
+        copyEnhancedBtn.title = 'Copy enhanced text to clipboard';
+
+        actions.appendChild(reuseOriginalBtn);
+        actions.appendChild(reuseEnhancedBtn);
+        actions.appendChild(copyEnhancedBtn);
+
+        expanded.appendChild(enhancedSection);
+        expanded.appendChild(actions);
+
+        div.appendChild(header);
+        div.appendChild(expanded);
+
+        // Event listeners
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleHistoryItem(div, toggleBtn);
+        });
+
+        reuseOriginalBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectHistoryItem(index, 'original');
+        });
+
+        reuseEnhancedBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectHistoryItem(index, 'enhanced');
+        });
+
+        copyEnhancedBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await copyToClipboard(item.enhancedText);
+            showCopyFeedback(copyEnhancedBtn);
+        });
+
+        // Click on header also toggles expansion
+        header.addEventListener('click', (e) => {
+            if (!e.target.closest('.history-action-btn') && !e.target.closest('.history-toggle')) {
+                toggleHistoryItem(div, toggleBtn);
+            }
+        });
 
         return div;
     }
 
     /**
-     * Handle clicking on a history item
+     * Handle clicking on a history item to load text into form
      */
-    function selectHistoryItem(index) {
+    function selectHistoryItem(index, version = 'original') {
         // Remove active class from all items
         document.querySelectorAll('.history-item').forEach(item => {
             item.classList.remove('active');
@@ -302,10 +389,69 @@ document.addEventListener('DOMContentLoaded', function() {
         // Load the selected prompt into the form
         const item = currentHistory[index];
         if (item) {
-            originalPromptTextarea.value = item.originalText;
+            if (version === 'enhanced') {
+                originalPromptTextarea.value = item.enhancedText;
+            } else {
+                originalPromptTextarea.value = item.originalText;
+            }
             enhancementStyleSelect.value = item.enhancementStyle;
             contextTypeSelect.value = item.context;
         }
+    }
+
+    /**
+     * Toggle expanded state of a history item
+     */
+    function toggleHistoryItem(historyItem, toggleBtn) {
+        const expanded = historyItem.querySelector('.history-expanded');
+        const isExpanded = expanded.style.display !== 'none';
+
+        if (isExpanded) {
+            expanded.style.display = 'none';
+            toggleBtn.innerHTML = '▼';
+            toggleBtn.title = 'Show enhanced text';
+        } else {
+            expanded.style.display = 'block';
+            toggleBtn.innerHTML = '▲';
+            toggleBtn.title = 'Hide enhanced text';
+        }
+    }
+
+    /**
+     * Copy text to clipboard
+     */
+    async function copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed: ', fallbackErr);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
+
+    /**
+     * Show feedback when text is copied
+     */
+    function showCopyFeedback(button) {
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.backgroundColor = '#34a853';
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '';
+        }, 1500);
     }
 
     /**
