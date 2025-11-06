@@ -44,9 +44,9 @@ body {
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
-    padding: 10px;
-    cursor: pointer;
+    margin-bottom: 8px;
     transition: background-color 0.2s, border-color 0.2s;
+    overflow: hidden; /* Prevent content from breaking out */
 }
 
 .history-item:hover {
@@ -60,23 +60,34 @@ body {
     border-width: 2px;
 }
 
+.history-header {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
 .history-original {
     font-size: 13px;
     color: #666;
-    margin-bottom: 4px;
+    flex: 1;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     line-clamp: 2;
     overflow: hidden;
+    word-break: break-word;
 }
 
 .history-meta {
     font-size: 11px;
     color: #999;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .history-style {
@@ -85,6 +96,7 @@ body {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
+    font-weight: 500;
 }
 
 .history-context {
@@ -93,6 +105,104 @@ body {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
+    font-weight: 500;
+}
+
+.history-toggle {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.history-toggle:hover {
+    background-color: rgba(66, 133, 244, 0.1);
+}
+
+.history-expanded {
+    border-top: 1px solid #e0e0e0;
+    background-color: #fafafa;
+}
+
+.history-enhanced-section {
+    padding: 12px;
+}
+
+.history-enhanced-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4285f4;
+    margin-bottom: 4px;
+}
+
+.history-enhanced-text {
+    font-size: 13px;
+    color: #333;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.history-actions {
+    padding: 8px 12px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f5f5f5;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.history-action-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 80px;
+}
+
+.history-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.reuse-original {
+    background-color: #666;
+    color: white;
+}
+
+.reuse-original:hover {
+    background-color: #555;
+}
+
+.reuse-enhanced {
+    background-color: #4285f4;
+    color: white;
+}
+
+.reuse-enhanced:hover {
+    background-color: #3367d6;
+}
+
+.copy-enhanced {
+    background-color: #34a853;
+    color: white;
+}
+
+.copy-enhanced:hover {
+    background-color: #2d8f47;
 }
 
 .history-loading, .history-empty {
