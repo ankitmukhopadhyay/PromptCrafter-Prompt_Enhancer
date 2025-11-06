@@ -3,7 +3,17 @@
  * Handles the main popup interface and API communication
  */
 
+// Debug: Check if marked library is loaded
+console.log('=== PromptCrafter Popup Loading ===');
+console.log('Marked library type:', typeof marked);
+console.log('Marked library:', marked);
+if (typeof marked !== 'undefined') {
+    console.log('Marked is a function:', typeof marked === 'function');
+    console.log('Marked.parse exists:', typeof marked.parse === 'function');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM Content Loaded ===');
     const originalPromptTextarea = document.getElementById('originalPrompt');
     const enhancementStyleSelect = document.getElementById('enhancementStyle');
     const contextTypeSelect = document.getElementById('contextType');
@@ -46,10 +56,67 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * Simple markdown to HTML converter (fallback)
+     */
+    function simpleMarkdownToHtml(markdown) {
+        if (!markdown) return '';
+        
+        let html = markdown
+            // Headers
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            // Italic
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            // Lists
+            .replace(/^\- (.+)$/gim, '<li>$1</li>')
+            // Wrap lists
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            // Line breaks
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph if not already wrapped
+        if (!html.startsWith('<')) {
+            html = '<p>' + html + '</p>';
+        }
+        
+        return html;
+    }
+
+    /**
      * Show enhanced result
      */
     function showResult(enhancedText) {
-        enhancedResultDiv.textContent = enhancedText;
+        try {
+            let renderedHtml;
+            
+            // Try to use marked library if available
+            if (typeof marked !== 'undefined' && typeof marked === 'function') {
+                console.log('Using Marked.js library for rendering');
+                renderedHtml = marked(enhancedText);
+            } else if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                console.log('Using Marked.js library (parse method) for rendering');
+                renderedHtml = marked.parse(enhancedText);
+            } else {
+                console.log('Marked.js not available, using simple markdown renderer');
+                renderedHtml = simpleMarkdownToHtml(enhancedText);
+            }
+            
+            enhancedResultDiv.innerHTML = renderedHtml;
+            console.log('Markdown rendered successfully');
+        } catch (error) {
+            console.error('Markdown rendering failed:', error);
+            // Try simple renderer as fallback
+            try {
+                enhancedResultDiv.innerHTML = simpleMarkdownToHtml(enhancedText);
+            } catch (fallbackError) {
+                console.error('Fallback rendering also failed, using plain text:', fallbackError);
+                enhancedResultDiv.textContent = enhancedText;
+            }
+        }
         resultSection.style.display = 'block';
         errorSection.style.display = 'none';
     }
@@ -303,7 +370,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const enhancedText = document.createElement('div');
         enhancedText.className = 'history-enhanced-text';
-        enhancedText.textContent = item.enhancedText;
+        try {
+            let renderedHtml;
+            
+            // Try to use marked library if available
+            if (typeof marked !== 'undefined' && typeof marked === 'function') {
+                renderedHtml = marked(item.enhancedText);
+            } else if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                renderedHtml = marked.parse(item.enhancedText);
+            } else {
+                renderedHtml = simpleMarkdownToHtml(item.enhancedText);
+            }
+            
+            enhancedText.innerHTML = renderedHtml;
+        } catch (error) {
+            console.error('Markdown rendering failed for history item:', error);
+            try {
+                enhancedText.innerHTML = simpleMarkdownToHtml(item.enhancedText);
+            } catch (fallbackError) {
+                console.error('Fallback rendering also failed, using plain text:', fallbackError);
+                enhancedText.textContent = item.enhancedText;
+            }
+        }
         enhancedText.title = item.enhancedText; // Full text on hover
 
         enhancedSection.appendChild(enhancedLabel);

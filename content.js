@@ -540,7 +540,8 @@ class PromptCrafterInjector {
 
             const enhancedText = await this.enhanceWithAPI(originalText, context);
 
-            // Insert enhanced text
+            // Insert enhanced text (keep as plain text with markdown formatting)
+            // ChatGPT will render the markdown itself
             console.log('PromptCrafter: Preparing to insert enhanced prompt...');
             setTimeout(() => {
                 this.insertEnhancedText(inputElement, enhancedText);
