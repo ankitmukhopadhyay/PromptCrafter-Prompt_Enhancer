@@ -523,7 +523,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = currentHistory[index];
         if (item) {
             if (version === 'enhanced') {
-                originalPromptTextarea.value = item.enhancedText;
+                // Strip markdown formatting when reusing enhanced text
+                originalPromptTextarea.value = stripMarkdown(item.enhancedText);
             } else {
                 originalPromptTextarea.value = item.originalText;
             }
@@ -551,16 +552,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Copy text to clipboard
+     * Copy text to clipboard (strips markdown formatting)
      */
     async function copyToClipboard(text) {
+        // Strip markdown formatting before copying
+        const plainText = stripMarkdown(text);
+        
         try {
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(plainText);
         } catch (err) {
             console.error('Failed to copy text: ', err);
             // Fallback for older browsers
             const textArea = document.createElement('textarea');
-            textArea.value = text;
+            textArea.value = plainText;
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
