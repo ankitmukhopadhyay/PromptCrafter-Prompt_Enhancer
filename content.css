@@ -1,12 +1,146 @@
 /**
- * Content script styles for PromptCrafter
- * Applied to injected elements on web pages
+ * Content script styles for PromptCrafter Chrome Extension
+ * Professional styling for injected enhancement buttons and notifications
  */
 
-/* Placeholder styles - will be expanded as we add UI elements */
-.promptcrafter-highlight {
-    background-color: rgba(66, 133, 244, 0.1);
-    border-left: 3px solid #4285f4;
-    padding: 8px;
+/* Base button styles */
+.promptcrafter-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10000;
+    position: relative;
+}
+
+.promptcrafter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.promptcrafter-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.promptcrafter-btn.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Site-specific button styling */
+.promptcrafter-btn-chatgpt {
+    background: linear-gradient(135deg, #10a37f 0%, #0d8a6a 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.promptcrafter-btn-scholar {
+    background: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+    font-family: Arial, sans-serif;
+}
+
+/* Button container for proper positioning */
+.promptcrafter-container {
+    display: inline-block;
     margin: 4px 0;
+    position: relative;
+}
+
+/* Notification system */
+.promptcrafter-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 10001;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.promptcrafter-success {
+    background: #10b981;
+}
+
+.promptcrafter-error {
+    background: #ef4444;
+}
+
+.promptcrafter-warning {
+    background: #f59e0b;
+}
+
+.promptcrafter-info {
+    background: #3b82f6;
+}
+
+/* Enhanced input highlighting */
+.promptcrafter-input-enhanced {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    border-color: #10b981 !important;
+    transition: all 0.2s ease;
+}
+
+/* Loading animation */
+@keyframes promptcrafter-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.promptcrafter-btn.loading {
+    animation: promptcrafter-pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .promptcrafter-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        margin: 4px;
+    }
+
+    .promptcrafter-notification {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .promptcrafter-btn {
+        border: 2px solid white;
+    }
+
+    .promptcrafter-notification {
+        border: 2px solid white;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .promptcrafter-btn {
+        transition: none;
+    }
+
+    .promptcrafter-btn:hover {
+        transform: none;
+    }
+
+    .promptcrafter-notification {
+        animation: none;
+    }
 }

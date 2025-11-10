@@ -1,5 +1,6 @@
 package com.promptcrafter.backend.service.impl;
 
+import com.promptcrafter.backend.dto.PromptHistoryResponse;
 import com.promptcrafter.backend.dto.PromptRequest;
 import com.promptcrafter.backend.dto.PromptResponse;
 import com.promptcrafter.backend.model.EnhancementRecord;
@@ -15,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Implementation of PromptEnhancementService that handles prompt enhancement
@@ -154,5 +158,44 @@ public class PromptEnhancementServiceImpl implements PromptEnhancementService {
         record.setEnhancedText(enhancedText);
         
         return enhancementRecordRepository.save(record);
+    }
+
+    /**
+     * Retrieves recent prompt enhancement history for display in the frontend.
+     * This method queries the database for recent prompts and their most recent enhancements,
+     * returning them in chronological order (newest first).
+     *
+     * @param limit Maximum number of history items to return
+     * @return History response containing recent prompts and their enhancements
+     */
+    @Override
+    public PromptHistoryResponse getPromptHistory(int limit) {
+        logger.info("Retrieving prompt history - limit: {}", limit);
+
+        try {
+            // Query for recent enhancement records with their associated prompts
+            // Order by creation date (newest first)
+            List<EnhancementRecord> recentRecords = enhancementRecordRepository
+                .findTop10ByOrderByCreatedAtDesc();
+
+            // Convert to DTO format for frontend consumption
+            List<PromptHistoryResponse.HistoryItem> historyItems = recentRecords.stream()
+                .map(record -> new PromptHistoryResponse.HistoryItem(
+                    record.getPrompt().getId(),
+                    record.getPrompt().getOriginalText(),
+                    record.getPrompt().getStyle().name(),
+                    record.getPrompt().getContext().name(),
+                    record.getEnhancedText(),
+                    record.getCreatedAt()
+                ))
+                .toList();
+
+            logger.info("Successfully retrieved {} history items", historyItems.size());
+            return new PromptHistoryResponse(historyItems, historyItems.size());
+
+        } catch (Exception e) {
+            logger.error("Failed to retrieve prompt history: {}", e.getMessage(), e);
+            return new PromptHistoryResponse(false, "Failed to retrieve history: " + e.getMessage());
+        }
     }
 }
