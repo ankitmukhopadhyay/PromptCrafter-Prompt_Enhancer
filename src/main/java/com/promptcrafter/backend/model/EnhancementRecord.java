@@ -2,6 +2,8 @@ package com.promptcrafter.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.Instant;
 
@@ -28,7 +30,8 @@ public class EnhancementRecord {
     /**
      * Reference to the original `Prompt` that this record enhances.
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     @JoinColumn(name = "prompt_id")
     private Prompt prompt;
 

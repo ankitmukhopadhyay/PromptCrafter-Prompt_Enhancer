@@ -3,7 +3,17 @@
  * Handles the main popup interface and API communication
  */
 
+// Debug: Check if marked library is loaded
+console.log('=== PromptCrafter Popup Loading ===');
+console.log('Marked library type:', typeof marked);
+console.log('Marked library:', marked);
+if (typeof marked !== 'undefined') {
+    console.log('Marked is a function:', typeof marked === 'function');
+    console.log('Marked.parse exists:', typeof marked.parse === 'function');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM Content Loaded ===');
     const originalPromptTextarea = document.getElementById('originalPrompt');
     const enhancementStyleSelect = document.getElementById('enhancementStyle');
     const contextTypeSelect = document.getElementById('contextType');
@@ -15,8 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('errorSection');
     const errorMessage = document.getElementById('errorMessage');
 
+    // History elements
+    const historySection = document.getElementById('historySection');
+    const historyList = document.getElementById('historyList');
+    const historyLoading = document.getElementById('historyLoading');
+    const historyEmpty = document.getElementById('historyEmpty');
+
     // API endpoint - matches your Spring Boot backend
     const API_BASE_URL = 'http://localhost:8080/api';
+
+    let currentHistory = [];
+    let activeHistoryItem = null;
 
     /**
      * Show loading state
@@ -37,10 +56,110 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * Strip markdown formatting and convert to plain text
+     */
+    function stripMarkdown(text) {
+        if (!text) return '';
+        
+        return text
+            // Remove headers (### Header -> Header)
+            .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+            // Remove bold (**text** or __text__ -> text)
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/__(.+?)__/g, '$1')
+            // Remove italic (*text* or _text_ -> text)
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/_(.+?)_/g, '$1')
+            // Remove strikethrough (~~text~~ -> text)
+            .replace(/~~(.+?)~~/g, '$1')
+            // Remove inline code (`code` -> code)
+            .replace(/`(.+?)`/g, '$1')
+            // Remove code blocks (```code``` -> code)
+            .replace(/```[\s\S]*?```/g, (match) => {
+                return match.replace(/```\w*\n?/g, '').replace(/```/g, '');
+            })
+            // Remove links ([text](url) -> text)
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Remove images (![alt](url) -> alt)
+            .replace(/!\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Remove bullet points (- item -> item)
+            .replace(/^[\s]*[-*+]\s+/gm, '')
+            // Remove numbered lists (1. item -> item)
+            .replace(/^[\s]*\d+\.\s+/gm, '')
+            // Remove blockquotes (> quote -> quote)
+            .replace(/^>\s+/gm, '')
+            // Remove horizontal rules (--- or *** -> empty)
+            .replace(/^[-*_]{3,}$/gm, '')
+            // Clean up extra whitespace
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
+    /**
+     * Simple markdown to HTML converter (fallback)
+     */
+    function simpleMarkdownToHtml(markdown) {
+        if (!markdown) return '';
+        
+        let html = markdown
+            // Headers
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            // Italic
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            // Lists
+            .replace(/^\- (.+)$/gim, '<li>$1</li>')
+            // Wrap lists
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            // Line breaks
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph if not already wrapped
+        if (!html.startsWith('<')) {
+            html = '<p>' + html + '</p>';
+        }
+        
+        return html;
+    }
+
+    /**
      * Show enhanced result
      */
     function showResult(enhancedText) {
-        enhancedResultDiv.textContent = enhancedText;
+        try {
+            let renderedHtml;
+            
+            // Store the original markdown text for copying
+            enhancedResultDiv.dataset.markdownText = enhancedText;
+            
+            // Try to use marked library if available
+            if (typeof marked !== 'undefined' && typeof marked === 'function') {
+                console.log('Using Marked.js library for rendering');
+                renderedHtml = marked(enhancedText);
+            } else if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                console.log('Using Marked.js library (parse method) for rendering');
+                renderedHtml = marked.parse(enhancedText);
+            } else {
+                console.log('Marked.js not available, using simple markdown renderer');
+                renderedHtml = simpleMarkdownToHtml(enhancedText);
+            }
+            
+            enhancedResultDiv.innerHTML = renderedHtml;
+            console.log('Markdown rendered successfully');
+        } catch (error) {
+            console.error('Markdown rendering failed:', error);
+            // Try simple renderer as fallback
+            try {
+                enhancedResultDiv.innerHTML = simpleMarkdownToHtml(enhancedText);
+            } catch (fallbackError) {
+                console.error('Fallback rendering also failed, using plain text:', fallbackError);
+                enhancedResultDiv.textContent = enhancedText;
+            }
+        }
         resultSection.style.display = 'block';
         errorSection.style.display = 'none';
     }
@@ -107,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const enhancedText = await enhancePrompt(originalText, style, context);
             showResult(enhancedText);
+            refreshHistory(); // Update history to show the new enhancement
         } catch (error) {
             showError(error.message);
         } finally {
@@ -118,7 +238,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * Handle copy to clipboard
      */
     function handleCopy() {
-        const textToCopy = enhancedResultDiv.textContent;
+        // Get the plain text version (strip markdown)
+        const markdownText = enhancedResultDiv.dataset.markdownText || enhancedResultDiv.textContent;
+        const textToCopy = stripMarkdown(markdownText);
 
         if (navigator.clipboard) {
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -190,8 +312,302 @@ document.addEventListener('DOMContentLoaded', function() {
             'google_search': 'GOOGLE_SCHOLAR'
         };
 
-        const dropdownValue = contextMap[context] || 'GENERAL';
-        contextTypeSelect.value = dropdownValue;
+    }
+
+    /**
+     * Load prompt history from the backend API
+     */
+    async function loadHistory() {
+        try {
+            historyLoading.style.display = 'block';
+            historyEmpty.style.display = 'none';
+            historyList.innerHTML = '';
+
+            const response = await fetch(`${API_BASE_URL}/history?limit=10`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.history && data.history.length > 0) {
+                currentHistory = data.history;
+                displayHistory(data.history);
+            } else {
+                showEmptyHistory();
+            }
+
+        } catch (error) {
+            console.error('Failed to load history:', error);
+            showEmptyHistory();
+        } finally {
+            historyLoading.style.display = 'none';
+        }
+    }
+
+    /**
+     * Display history items in the UI
+     */
+    function displayHistory(historyItems) {
+        historyList.innerHTML = '';
+
+        historyItems.forEach((item, index) => {
+            const historyItem = createHistoryItemElement(item, index);
+            historyList.appendChild(historyItem);
+        });
+
+        historySection.style.display = 'block';
+    }
+
+    /**
+     * Create a history item element with expandable functionality
+     */
+    function createHistoryItemElement(item, index) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.dataset.index = index;
+
+        // Header section (always visible)
+        const header = document.createElement('div');
+        header.className = 'history-header';
+
+        const originalText = document.createElement('div');
+        originalText.className = 'history-original';
+        originalText.textContent = item.originalText;
+        originalText.title = item.originalText; // Full text on hover
+
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+
+        const styleBadge = document.createElement('span');
+        styleBadge.className = 'history-style';
+        styleBadge.textContent = item.enhancementStyle;
+
+        const contextBadge = document.createElement('span');
+        contextBadge.className = 'history-context';
+        contextBadge.textContent = item.context;
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'history-toggle';
+        toggleBtn.innerHTML = '▼';
+        toggleBtn.title = 'Show enhanced text';
+
+        meta.appendChild(styleBadge);
+        meta.appendChild(contextBadge);
+        meta.appendChild(toggleBtn);
+
+        header.appendChild(originalText);
+        header.appendChild(meta);
+
+        // Expandable content section
+        const expanded = document.createElement('div');
+        expanded.className = 'history-expanded';
+        expanded.style.display = 'none';
+
+        // Enhanced text section
+        const enhancedSection = document.createElement('div');
+        enhancedSection.className = 'history-enhanced-section';
+
+        const enhancedLabel = document.createElement('div');
+        enhancedLabel.className = 'history-enhanced-label';
+        enhancedLabel.textContent = 'Enhanced:';
+
+        const enhancedText = document.createElement('div');
+        enhancedText.className = 'history-enhanced-text';
+        try {
+            let renderedHtml;
+            
+            // Try to use marked library if available
+            if (typeof marked !== 'undefined' && typeof marked === 'function') {
+                renderedHtml = marked(item.enhancedText);
+            } else if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                renderedHtml = marked.parse(item.enhancedText);
+            } else {
+                renderedHtml = simpleMarkdownToHtml(item.enhancedText);
+            }
+            
+            enhancedText.innerHTML = renderedHtml;
+        } catch (error) {
+            console.error('Markdown rendering failed for history item:', error);
+            try {
+                enhancedText.innerHTML = simpleMarkdownToHtml(item.enhancedText);
+            } catch (fallbackError) {
+                console.error('Fallback rendering also failed, using plain text:', fallbackError);
+                enhancedText.textContent = item.enhancedText;
+            }
+        }
+        enhancedText.title = item.enhancedText; // Full text on hover
+
+        enhancedSection.appendChild(enhancedLabel);
+        enhancedSection.appendChild(enhancedText);
+
+        // Action buttons
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const reuseOriginalBtn = document.createElement('button');
+        reuseOriginalBtn.className = 'history-action-btn reuse-original';
+        reuseOriginalBtn.textContent = 'Reuse Original';
+        reuseOriginalBtn.title = 'Load original text into the form';
+
+        const reuseEnhancedBtn = document.createElement('button');
+        reuseEnhancedBtn.className = 'history-action-btn reuse-enhanced';
+        reuseEnhancedBtn.textContent = 'Reuse Enhanced';
+        reuseEnhancedBtn.title = 'Load enhanced text into the form';
+
+        const copyEnhancedBtn = document.createElement('button');
+        copyEnhancedBtn.className = 'history-action-btn copy-enhanced';
+        copyEnhancedBtn.textContent = 'Copy Enhanced';
+        copyEnhancedBtn.title = 'Copy enhanced text to clipboard';
+
+        actions.appendChild(reuseOriginalBtn);
+        actions.appendChild(reuseEnhancedBtn);
+        actions.appendChild(copyEnhancedBtn);
+
+        expanded.appendChild(enhancedSection);
+        expanded.appendChild(actions);
+
+        div.appendChild(header);
+        div.appendChild(expanded);
+
+        // Event listeners
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleHistoryItem(div, toggleBtn);
+        });
+
+        reuseOriginalBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectHistoryItem(index, 'original');
+        });
+
+        reuseEnhancedBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectHistoryItem(index, 'enhanced');
+        });
+
+        copyEnhancedBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await copyToClipboard(item.enhancedText);
+            showCopyFeedback(copyEnhancedBtn);
+        });
+
+        // Click on header also toggles expansion
+        header.addEventListener('click', (e) => {
+            if (!e.target.closest('.history-action-btn') && !e.target.closest('.history-toggle')) {
+                toggleHistoryItem(div, toggleBtn);
+            }
+        });
+
+        return div;
+    }
+
+    /**
+     * Handle clicking on a history item to load text into form
+     */
+    function selectHistoryItem(index, version = 'original') {
+        // Remove active class from all items
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Add active class to selected item
+        const selectedItem = document.querySelector(`[data-index="${index}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+            activeHistoryItem = index;
+        }
+
+        // Load the selected prompt into the form
+        const item = currentHistory[index];
+        if (item) {
+            if (version === 'enhanced') {
+                // Strip markdown formatting when reusing enhanced text
+                originalPromptTextarea.value = stripMarkdown(item.enhancedText);
+            } else {
+                originalPromptTextarea.value = item.originalText;
+            }
+            enhancementStyleSelect.value = item.enhancementStyle;
+            contextTypeSelect.value = item.context;
+        }
+    }
+
+    /**
+     * Toggle expanded state of a history item
+     */
+    function toggleHistoryItem(historyItem, toggleBtn) {
+        const expanded = historyItem.querySelector('.history-expanded');
+        const isExpanded = expanded.style.display !== 'none';
+
+        if (isExpanded) {
+            expanded.style.display = 'none';
+            toggleBtn.innerHTML = '▼';
+            toggleBtn.title = 'Show enhanced text';
+        } else {
+            expanded.style.display = 'block';
+            toggleBtn.innerHTML = '▲';
+            toggleBtn.title = 'Hide enhanced text';
+        }
+    }
+
+    /**
+     * Copy text to clipboard (strips markdown formatting)
+     */
+    async function copyToClipboard(text) {
+        // Strip markdown formatting before copying
+        const plainText = stripMarkdown(text);
+        
+        try {
+            await navigator.clipboard.writeText(plainText);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = plainText;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed: ', fallbackErr);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
+
+    /**
+     * Show feedback when text is copied
+     */
+    function showCopyFeedback(button) {
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.backgroundColor = '#34a853';
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '';
+        }, 1500);
+    }
+
+    /**
+     * Show empty history state
+     */
+    function showEmptyHistory() {
+        historyEmpty.style.display = 'block';
+        historyList.innerHTML = '';
+        historySection.style.display = 'block';
+    }
+
+    /**
+     * Refresh history after a new enhancement
+     */
+    function refreshHistory() {
+        // Reload history to show the new item
+        setTimeout(() => {
+            loadHistory();
+        }, 1000); // Small delay to ensure backend has processed the new record
     }
 
     // Event listeners
@@ -200,6 +616,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-detect context when popup opens
     autoDetectContext();
+
+    // Load history on startup
+    loadHistory();
 
     console.log('PromptCrafter popup loaded successfully');
 });

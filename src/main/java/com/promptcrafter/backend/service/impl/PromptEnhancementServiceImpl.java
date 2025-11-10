@@ -1,5 +1,6 @@
 package com.promptcrafter.backend.service.impl;
 
+import com.promptcrafter.backend.dto.PromptHistoryResponse;
 import com.promptcrafter.backend.dto.PromptRequest;
 import com.promptcrafter.backend.dto.PromptResponse;
 import com.promptcrafter.backend.model.EnhancementRecord;
@@ -13,8 +14,14 @@ import com.promptcrafter.backend.service.ai.LangChain4jService;
 import com.promptcrafter.backend.templates.PromptTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Implementation of PromptEnhancementService that handles prompt enhancement
@@ -154,5 +161,55 @@ public class PromptEnhancementServiceImpl implements PromptEnhancementService {
         record.setEnhancedText(enhancedText);
         
         return enhancementRecordRepository.save(record);
+    }
+
+    /**
+     * Retrieves recent prompt enhancement history for display in the frontend.
+     * This method queries the database for recent prompts and their most recent enhancements,
+     * returning them in chronological order (newest first).
+     *
+     * @param limit Maximum number of history items to return
+     * @return History response containing recent prompts and their enhancements
+     */
+    @Override
+    public PromptHistoryResponse getPromptHistory(int limit) {
+        logger.info("Retrieving prompt history - limit: {}", limit);
+
+        try {
+            // Create pageable request with sorting and limit
+            Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+            // Query for recent enhancement records with their associated prompts
+            // Using Pageable to limit at database level for efficiency
+            List<EnhancementRecord> recentRecords = enhancementRecordRepository.findAll(pageable).getContent();
+
+            logger.info("Found {} enhancement records in database", recentRecords.size());
+
+            // Convert to DTO format for frontend consumption
+            List<PromptHistoryResponse.HistoryItem> historyItems = recentRecords.stream()
+                .map(record -> {
+                    logger.debug("Processing record ID: {}, prompt: {}", record.getId(), record.getPrompt().getOriginalText());
+                    return new PromptHistoryResponse.HistoryItem(
+                        record.getPrompt().getId(),
+                        record.getPrompt().getOriginalText(),
+                        record.getPrompt().getStyle().name(),
+                        record.getPrompt().getContext().name(),
+                        record.getEnhancedText(),
+                        record.getCreatedAt()
+                    );
+                })
+                .toList();
+
+            logger.info("Successfully created {} history items", historyItems.size());
+
+            PromptHistoryResponse response = new PromptHistoryResponse(historyItems, historyItems.size());
+            logger.info("Created response with success: {}, totalCount: {}", response.isSuccess(), response.getTotalCount());
+
+            return response;
+
+        } catch (Exception e) {
+            logger.error("Failed to retrieve prompt history: {}", e.getMessage(), e);
+            return new PromptHistoryResponse(false, "Failed to retrieve history: " + e.getMessage());
+        }
     }
 }

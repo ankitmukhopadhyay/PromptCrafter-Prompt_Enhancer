@@ -216,9 +216,9 @@ public class LangChain4jService {
      * @return Concise version of the original text
      */
     private String generateConciseEnhancement(String originalText) {
-        // Rule-based concise enhancement
+        // Rule-based concise enhancement with markdown formatting
         if (originalText.length() <= 50) {
-            return "Quick inquiry: " + originalText;
+            return "**Quick Inquiry**\n\n" + originalText;
         }
 
         // Extract key terms and create focused version
@@ -228,10 +228,10 @@ public class LangChain4jService {
             String beginning = String.join(" ", java.util.Arrays.copyOfRange(words, 0, Math.min(5, words.length)));
             String ending = words.length > 10 ?
                     String.join(" ", java.util.Arrays.copyOfRange(words, words.length - 3, words.length)) : "";
-            return beginning + (ending.isEmpty() ? "" : " - " + ending) + " (focused approach)";
+            return "**Focused Query**\n\n" + beginning + (ending.isEmpty() ? "" : " - *" + ending + "*") + " (concise approach)";
         }
 
-        return "Direct query: " + originalText;
+        return "**Direct Query**\n\n" + originalText;
     }
 
     /**
@@ -242,9 +242,12 @@ public class LangChain4jService {
      * @return Academic version with research-focused language
      */
     private String generateAcademicEnhancement(String originalText) {
-        return "Systematic research investigation: " + originalText +
-                ". Please provide peer-reviewed sources, methodological framework, and evidence-based analysis " +
-                "with appropriate academic citations and theoretical context.";
+        return "**Systematic Research Investigation**\n\n" + originalText +
+                "\n\n**Requirements:**\n" +
+                "- Provide peer-reviewed sources and academic references\n" +
+                "- Include methodological framework and research design\n" +
+                "- Present evidence-based analysis with proper citations\n" +
+                "- Consider theoretical context and scholarly implications";
     }
 
     /**
@@ -255,9 +258,13 @@ public class LangChain4jService {
      * @return Detailed version with comprehensive context and requirements
      */
     private String generateDetailedEnhancement(String originalText) {
-        return "Comprehensive analysis request: " + originalText +
-                ". Please include background context, specific examples, step-by-step methodology, " +
-                "potential challenges and solutions, and detailed recommendations with supporting evidence.";
+        return "**Comprehensive Analysis Request**\n\n" + originalText +
+                "\n\n**Required Elements:**\n" +
+                "- **Background Context**: Provide relevant background information\n" +
+                "- **Specific Examples**: Include concrete examples and case studies\n" +
+                "- **Step-by-Step Methodology**: Outline detailed approach and process\n" +
+                "- **Challenges & Solutions**: Identify potential issues and solutions\n" +
+                "- **Detailed Recommendations**: Provide comprehensive guidance with supporting evidence";
     }
 
     /**
@@ -268,8 +275,11 @@ public class LangChain4jService {
      * @return Creative version with innovative and engaging elements
      */
     private String generateCreativeEnhancement(String originalText) {
-        return "Innovative exploration: " + originalText +
-                ". Please approach this with creative thinking, unique perspectives, unconventional solutions, " +
-                "and engaging storytelling elements while maintaining practical applicability.";
+        return "**Innovative Exploration**\n\n" + originalText +
+                "\n\n**Creative Approach:**\n" +
+                "- **Unconventional Thinking**: Explore unique perspectives and novel approaches\n" +
+                "- **Storytelling Elements**: Incorporate engaging narratives and scenarios\n" +
+                "- **Innovative Solutions**: Develop creative strategies and breakthrough ideas\n" +
+                "- **Practical Creativity**: Balance innovation with real-world applicability";
     }
 }
