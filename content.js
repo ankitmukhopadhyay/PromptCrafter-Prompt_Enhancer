@@ -540,7 +540,8 @@ class PromptCrafterInjector {
 
             const enhancedText = await this.enhanceWithAPI(originalText, context);
 
-            // Insert enhanced text
+            // Insert enhanced text (keep as plain text with markdown formatting)
+            // ChatGPT will render the markdown itself
             console.log('PromptCrafter: Preparing to insert enhanced prompt...');
             setTimeout(() => {
                 this.insertEnhancedText(inputElement, enhancedText);
@@ -606,21 +607,66 @@ class PromptCrafterInjector {
         }
     }
 
+    /**
+     * Strip markdown formatting and convert to plain text
+     * Removes markdown syntax while preserving the content
+     */
+    stripMarkdown(text) {
+        if (!text) return '';
+        
+        return text
+            // Remove headers (### Header -> Header)
+            .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+            // Remove bold (**text** or __text__ -> text)
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/__(.+?)__/g, '$1')
+            // Remove italic (*text* or _text_ -> text)
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/_(.+?)_/g, '$1')
+            // Remove strikethrough (~~text~~ -> text)
+            .replace(/~~(.+?)~~/g, '$1')
+            // Remove inline code (`code` -> code)
+            .replace(/`(.+?)`/g, '$1')
+            // Remove code blocks (```code``` -> code)
+            .replace(/```[\s\S]*?```/g, (match) => {
+                return match.replace(/```\w*\n?/g, '').replace(/```/g, '');
+            })
+            // Remove links ([text](url) -> text)
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Remove images (![alt](url) -> alt)
+            .replace(/!\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Remove bullet points (- item -> item)
+            .replace(/^[\s]*[-*+]\s+/gm, '')
+            // Remove numbered lists (1. item -> item)
+            .replace(/^[\s]*\d+\.\s+/gm, '')
+            // Remove blockquotes (> quote -> quote)
+            .replace(/^>\s+/gm, '')
+            // Remove horizontal rules (--- or *** -> empty)
+            .replace(/^[-*_]{3,}$/gm, '')
+            // Clean up extra whitespace
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
     insertEnhancedText(inputElement, enhancedText) {
         console.log('PromptCrafter: Inserting enhanced text into element:', inputElement.tagName, inputElement.contentEditable);
 
+        // Strip markdown formatting for plain text insertion
+        const plainText = this.stripMarkdown(enhancedText);
+        console.log('PromptCrafter: Stripped markdown, original length:', enhancedText.length, 'plain length:', plainText.length);
+
         if (inputElement.tagName === 'TEXTAREA' || inputElement.tagName === 'INPUT') {
             // For regular form inputs, set value and trigger change event
-            inputElement.value = enhancedText;
+            inputElement.value = plainText;
             // Only dispatch input event for non-React inputs to avoid infinite loops
             inputElement.dispatchEvent(new Event('input', { bubbles: true }));
         } else if (inputElement.contentEditable === 'true') {
-            // For contentEditable elements (like ChatGPT), avoid dispatching events
-            // as they may be React-controlled and cause infinite re-renders
+            // For contentEditable elements (like ChatGPT), use plain text
+            // ChatGPT's input doesn't render markdown, so we strip it
             console.log('PromptCrafter: Setting contentEditable text without dispatching events to avoid React conflicts');
 
-            // Use innerHTML instead of textContent to preserve any formatting
-            inputElement.innerHTML = enhancedText;
+            // Use textContent for plain text (no HTML/markdown)
+            inputElement.textContent = plainText;
 
             // Don't dispatch 'input' event for React components to avoid infinite loops
             // React will handle the change through its own mechanisms
@@ -631,7 +677,15 @@ class PromptCrafterInjector {
             inputElement.focus();
             // Move cursor to end of text
             if (inputElement.setSelectionRange) {
-                inputElement.setSelectionRange(enhancedText.length, enhancedText.length);
+                inputElement.setSelectionRange(plainText.length, plainText.length);
+            } else if (window.getSelection && document.createRange) {
+                // For contentEditable elements
+                const range = document.createRange();
+                range.selectNodeContents(inputElement);
+                range.collapse(false);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
             }
         } catch (e) {
             console.log('PromptCrafter: Could not focus input element:', e.message);
