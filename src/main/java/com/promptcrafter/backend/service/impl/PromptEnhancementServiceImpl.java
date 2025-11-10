@@ -14,6 +14,9 @@ import com.promptcrafter.backend.service.ai.LangChain4jService;
 import com.promptcrafter.backend.templates.PromptTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -173,25 +176,36 @@ public class PromptEnhancementServiceImpl implements PromptEnhancementService {
         logger.info("Retrieving prompt history - limit: {}", limit);
 
         try {
+            // Create pageable request with sorting and limit
+            Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+
             // Query for recent enhancement records with their associated prompts
-            // Order by creation date (newest first)
-            List<EnhancementRecord> recentRecords = enhancementRecordRepository
-                .findTop10ByOrderByCreatedAtDesc();
+            // Using Pageable to limit at database level for efficiency
+            List<EnhancementRecord> recentRecords = enhancementRecordRepository.findAll(pageable).getContent();
+
+            logger.info("Found {} enhancement records in database", recentRecords.size());
 
             // Convert to DTO format for frontend consumption
             List<PromptHistoryResponse.HistoryItem> historyItems = recentRecords.stream()
-                .map(record -> new PromptHistoryResponse.HistoryItem(
-                    record.getPrompt().getId(),
-                    record.getPrompt().getOriginalText(),
-                    record.getPrompt().getStyle().name(),
-                    record.getPrompt().getContext().name(),
-                    record.getEnhancedText(),
-                    record.getCreatedAt()
-                ))
+                .map(record -> {
+                    logger.debug("Processing record ID: {}, prompt: {}", record.getId(), record.getPrompt().getOriginalText());
+                    return new PromptHistoryResponse.HistoryItem(
+                        record.getPrompt().getId(),
+                        record.getPrompt().getOriginalText(),
+                        record.getPrompt().getStyle().name(),
+                        record.getPrompt().getContext().name(),
+                        record.getEnhancedText(),
+                        record.getCreatedAt()
+                    );
+                })
                 .toList();
 
-            logger.info("Successfully retrieved {} history items", historyItems.size());
-            return new PromptHistoryResponse(historyItems, historyItems.size());
+            logger.info("Successfully created {} history items", historyItems.size());
+
+            PromptHistoryResponse response = new PromptHistoryResponse(historyItems, historyItems.size());
+            logger.info("Created response with success: {}, totalCount: {}", response.isSuccess(), response.getTotalCount());
+
+            return response;
 
         } catch (Exception e) {
             logger.error("Failed to retrieve prompt history: {}", e.getMessage(), e);
