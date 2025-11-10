@@ -18,14 +18,14 @@ class PromptCrafterInjector {
     detectContext() {
         const url = window.location.href;
         console.log('PromptCrafter: Detecting context for URL:', url);
-
+        
         if (url.includes('chat.openai.com') || url.includes('chatgpt.com')) {
             console.log('PromptCrafter: ✅ Detected CHATGPT context');
             return 'CHATGPT';
         }
         if (url.includes('scholar.google.com')) return 'GOOGLE_SCHOLAR';
         if (url.includes('google.com/search')) return 'GOOGLE_SCHOLAR';
-
+        
         console.log('PromptCrafter: Detected GENERAL context');
         return 'GENERAL';
     }
@@ -33,19 +33,19 @@ class PromptCrafterInjector {
     async init() {
         console.log('PromptCrafter: Initializing for context:', this.context);
 
-        // REMOVED: Test button for debugging (red 'Test Enhance' button)
-        // this.addForceShowButton();
+        // Add force show button for testing
+        this.addForceShowButton();
 
         // For ChatGPT, inject UI immediately and also after delays
         if (this.context === 'CHATGPT') {
             console.log('PromptCrafter: ChatGPT detected - starting injection sequence');
-
+            
             // Try immediately
             setTimeout(() => this.injectUI(), 500);
-
+            
             // Try after 2 seconds
             setTimeout(() => this.injectUI(), 2000);
-
+            
             // Try after 5 seconds
             setTimeout(() => this.injectUI(), 5000);
         } else {
@@ -139,7 +139,7 @@ class PromptCrafterInjector {
 
     injectUI() {
         console.log('PromptCrafter: injectUI() called for context:', this.context);
-
+        
         try {
             if (this.context === 'CHATGPT') {
                 console.log('PromptCrafter: Calling injectChatGPTEnhancer()...');
@@ -168,7 +168,7 @@ class PromptCrafterInjector {
 
             // Try the primary selector first
             let input = document.querySelector('#prompt-textarea');
-
+            
             if (input) {
                 console.log('PromptCrafter: ✅ Found #prompt-textarea!', {
                     tagName: input.tagName,
@@ -187,11 +187,11 @@ class PromptCrafterInjector {
                 }
             } else {
                 console.log('PromptCrafter: #prompt-textarea not found yet');
-
+                
                 // Debug: Show what we can find
                 const allDivs = document.querySelectorAll('div[contenteditable="true"]');
                 console.log(`PromptCrafter: Found ${allDivs.length} contenteditable divs`);
-
+                
                 // Try backup selectors
                 const backupSelectors = [
                     'div.ProseMirror[contenteditable="true"]',
@@ -282,166 +282,26 @@ class PromptCrafterInjector {
     }
 
     injectScholarEnhancer() {
-        console.log('PromptCrafter: Starting Google Scholar enhancer injection');
-
-        let attempts = 0;
-        const maxAttempts = 10;
+        const searchSelectors = [
+            'input[name="q"]',
+            'input[aria-label*="search"]',
+            'input[type="text"]'
+        ];
 
         const checkForSearchBox = () => {
-            attempts++;
-            console.log(`PromptCrafter: Scholar attempt ${attempts}/${maxAttempts} - Checking for search box...`);
-
-            // More specific selectors for Google Scholar search box
-            const searchSelectors = [
-                'input[name="q"][type="text"]', // Primary Google Scholar search box
-                'input[aria-label*="earch" i]', // Contains "search" (case insensitive)
-                'input[type="text"][maxlength]', // Text inputs with maxlength
-                '.gs_in_txt input[type="text"]', // Google Scholar specific class
-                'form input[type="text"]:not([name="btnG"])' // Form inputs excluding submit buttons
-            ];
-
             for (const selector of searchSelectors) {
                 const inputs = document.querySelectorAll(selector);
                 for (const input of inputs) {
-                    if (this.isScholarSearchBox(input)) {
-                        console.log('PromptCrafter: ✅ Found Google Scholar search box:', {
-                            selector: selector,
-                            input: input,
-                            value: input.value,
-                            placeholder: input.placeholder
-                        });
-                        this.addScholarEnhancementButton(input);
-                        return true;
+                    if (input && this.isVisible(input) && input.offsetWidth > 200) {
+                        this.addEnhancementButton(input, 'scholar');
+                        return;
                     }
                 }
             }
-
-            // Also check for general search inputs in scholar.google.com
-            if (window.location.hostname === 'scholar.google.com') {
-                const allInputs = document.querySelectorAll('input[type="text"]');
-                for (const input of allInputs) {
-                    if (this.isScholarSearchBox(input) && input.offsetWidth > 300) {
-                        console.log('PromptCrafter: ✅ Found Google Scholar search box (fallback):', input);
-                        this.addScholarEnhancementButton(input);
-                        return true;
-                    }
-                }
-            }
-
-            // Retry if we haven't exceeded max attempts
-            if (attempts < maxAttempts) {
-                console.log(`PromptCrafter: Retrying Scholar search in 1 second... (${maxAttempts - attempts} attempts left)`);
-                setTimeout(checkForSearchBox, 1000);
-            } else {
-                console.log('PromptCrafter: ❌ Max attempts reached. Could not find Google Scholar search box.');
-            }
-
-            return false;
+            setTimeout(checkForSearchBox, 1000);
         };
 
-        // Wait a bit for Google Scholar to load
-        setTimeout(() => {
-            console.log('PromptCrafter: Starting Google Scholar search box detection...');
-            checkForSearchBox();
-        }, 500);
-    }
-
-    isScholarSearchBox(input) {
-        // Validate this is a Google Scholar search box
-        const rect = input.getBoundingClientRect();
-        const isLargeEnough = rect.width > 200 && rect.height > 15;
-        const isVisible = this.isVisible(input);
-        const isNotHidden = window.getComputedStyle(input).display !== 'none';
-
-        // Check for Scholar-specific attributes
-        const hasScholarClass = input.closest('.gs_in_txt') !== null;
-        const hasSearchPlaceholder = /search|query|term/i.test(input.placeholder || '');
-        const hasScholarName = input.name === 'q';
-        const isInScholarForm = input.closest('form') && input.closest('form').action &&
-            input.closest('form').action.includes('scholar');
-
-        // Google Scholar search box should be prominent and in the right context
-        return isLargeEnough && isVisible && isNotHidden &&
-            (hasScholarClass || hasSearchPlaceholder || hasScholarName || isInScholarForm);
-    }
-
-    addScholarEnhancementButton(inputElement) {
-        // Prevent duplicate buttons
-        const existingBtn = document.querySelector('.scholar-enhance-btn');
-        if (existingBtn) {
-            console.log('PromptCrafter: Scholar button already exists, skipping...');
-            return;
-        }
-
-        console.log('PromptCrafter: Creating Scholar enhance button');
-
-        // Store reference to input element
-        this.scholarInput = inputElement;
-
-        const button = document.createElement('button');
-        button.id = 'scholar-enhance-btn';
-        button.className = 'scholar-enhance-btn';
-        button.innerHTML = '🎓 Enhance Query';
-        button.title = 'Enhance your academic search query (ACADEMIC style, GOOGLE_SCHOLAR context)';
-
-        // Position relative to the search input
-        const inputRect = inputElement.getBoundingClientRect();
-        button.style.cssText = `
-            position: absolute !important;
-            top: 50% !important;
-            right: 10px !important;
-            transform: translateY(-50%) !important;
-            z-index: 1000 !important;
-            background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%) !important;
-            color: white !important;
-            border: none !important;
-            padding: 6px 12px !important;
-            border-radius: 4px !important;
-            cursor: pointer !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.3) !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            white-space: nowrap !important;
-        `;
-
-        button.onmouseover = () => {
-            button.style.transform = 'translateY(-50%) scale(1.05)';
-            button.style.boxShadow = '0 3px 6px rgba(44, 82, 130, 0.4)';
-        };
-
-        button.onmouseout = () => {
-            button.style.transform = 'translateY(-50%) scale(1)';
-            button.style.boxShadow = '0 2px 4px rgba(44, 82, 130, 0.3)';
-        };
-
-        button.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('PromptCrafter: Scholar enhance button clicked!');
-            this.handleScholarEnhancement(inputElement);
-        };
-
-        // Make input container relative positioned if needed
-        const container = inputElement.parentNode;
-        if (container && window.getComputedStyle(container).position === 'static') {
-            container.style.position = 'relative';
-        }
-
-        container.appendChild(button);
-        console.log('PromptCrafter: ✅ Scholar enhance button added to search box');
-
-        // Verify button was added
-        setTimeout(() => {
-            const checkBtn = document.getElementById('scholar-enhance-btn');
-            console.log('PromptCrafter: Scholar button check after 1s:', {
-                exists: !!checkBtn,
-                visible: checkBtn ? this.isVisible(checkBtn) : false,
-                position: checkBtn ? checkBtn.getBoundingClientRect() : null
-            });
-        }, 1000);
+        checkForSearchBox();
     }
 
     addEnhancementButton(inputElement, siteType) {
@@ -462,7 +322,7 @@ class PromptCrafterInjector {
         button.className = 'promptcrafter-enhance-btn';
         button.innerHTML = '✨ Enhance Prompt';
         button.title = 'Enhance the text in ChatGPT input (DETAILED style, GENERAL context)';
-
+        
         // Use EXACT same styling as test button, but positioned below it
         button.style.cssText = `
             position: fixed !important;
@@ -515,14 +375,14 @@ class PromptCrafterInjector {
 
     isVisible(element) {
         return element.offsetWidth > 0 && element.offsetHeight > 0 &&
-            window.getComputedStyle(element).visibility !== 'hidden';
+               window.getComputedStyle(element).visibility !== 'hidden';
     }
 
     async handleEnhancement(inputElement, siteType) {
         const originalText = this.extractText(inputElement);
 
         if (!originalText) {
-            this.showNotification('Please enter a prompt to enhance', 'warning');
+            this.showNotification('Please enter some text to enhance', 'warning');
             return;
         }
 
@@ -530,19 +390,11 @@ class PromptCrafterInjector {
         this.showLoading(inputElement);
 
         try {
-            // Determine context based on site type
-            let context = 'GENERAL'; // Default
-            if (siteType === 'chatgpt') {
-                context = 'CHATGPT';
-            } else if (siteType === 'google_scholar') {
-                context = 'GOOGLE_SCHOLAR';
-            }
+            const enhancedText = await this.enhanceWithAPI(originalText, this.context);
 
-            const enhancedText = await this.enhanceWithAPI(originalText, context);
-
-            // Insert enhanced text (keep as plain text with markdown formatting)
-            // ChatGPT will render the markdown itself
-            console.log('PromptCrafter: Preparing to insert enhanced prompt...');
+            // Auto-insert enhanced text
+            console.log('PromptCrafter: Preparing to insert enhanced text...');
+            // Small delay to let React finish any pending updates
             setTimeout(() => {
                 this.insertEnhancedText(inputElement, enhancedText);
             }, 100);
@@ -557,31 +409,7 @@ class PromptCrafterInjector {
         }
     }
 
-    showScholarLoading(inputElement) {
-        const button = document.getElementById('scholar-enhance-btn');
-        if (button) {
-            button.textContent = '⏳ Enhancing...';
-            button.disabled = true;
-            button.style.opacity = '0.7';
-        }
-    }
-
-    hideScholarLoading(inputElement) {
-        const button = document.getElementById('scholar-enhance-btn');
-        if (button) {
-            button.textContent = '🎓 Enhance Query';
-            button.disabled = false;
-            button.style.opacity = '1';
-        }
-    }
-
     async enhanceWithAPI(text, context) {
-        // Choose appropriate style based on context
-        let style = 'DETAILED'; // Default style
-        if (context === 'GOOGLE_SCHOLAR') {
-            style = 'ACADEMIC'; // Academic style for scholarly search queries
-        }
-
         const response = await fetch(`${this.apiBaseUrl}/rewrite`, {
             method: 'POST',
             headers: {
@@ -589,8 +417,8 @@ class PromptCrafterInjector {
             },
             body: JSON.stringify({
                 originalText: text,
-                style: style,
-                context: context || 'GENERAL'
+                style: 'DETAILED', // DETAILED style for comprehensive enhancement
+                context: context || 'GENERAL' // GENERAL context by default
             })
         });
 
@@ -607,66 +435,21 @@ class PromptCrafterInjector {
         }
     }
 
-    /**
-     * Strip markdown formatting and convert to plain text
-     * Removes markdown syntax while preserving the content
-     */
-    stripMarkdown(text) {
-        if (!text) return '';
-
-        return text
-            // Remove headers (### Header -> Header)
-            .replace(/^#{1,6}\s+(.+)$/gm, '$1')
-            // Remove bold (**text** or __text__ -> text)
-            .replace(/\*\*(.+?)\*\*/g, '$1')
-            .replace(/__(.+?)__/g, '$1')
-            // Remove italic (*text* or _text_ -> text)
-            .replace(/\*(.+?)\*/g, '$1')
-            .replace(/_(.+?)_/g, '$1')
-            // Remove strikethrough (~~text~~ -> text)
-            .replace(/~~(.+?)~~/g, '$1')
-            // Remove inline code (`code` -> code)
-            .replace(/`(.+?)`/g, '$1')
-            // Remove code blocks (```code``` -> code)
-            .replace(/```[\s\S]*?```/g, (match) => {
-                return match.replace(/```\w*\n?/g, '').replace(/```/g, '');
-            })
-            // Remove links ([text](url) -> text)
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-            // Remove images (![alt](url) -> alt)
-            .replace(/!\[([^\]]+)\]\([^)]+\)/g, '$1')
-            // Remove bullet points (- item -> item)
-            .replace(/^[\s]*[-*+]\s+/gm, '')
-            // Remove numbered lists (1. item -> item)
-            .replace(/^[\s]*\d+\.\s+/gm, '')
-            // Remove blockquotes (> quote -> quote)
-            .replace(/^>\s+/gm, '')
-            // Remove horizontal rules (--- or *** -> empty)
-            .replace(/^[-*_]{3,}$/gm, '')
-            // Clean up extra whitespace
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
-    }
-
     insertEnhancedText(inputElement, enhancedText) {
         console.log('PromptCrafter: Inserting enhanced text into element:', inputElement.tagName, inputElement.contentEditable);
 
-        // Strip markdown formatting for plain text insertion
-        const plainText = this.stripMarkdown(enhancedText);
-        console.log('PromptCrafter: Stripped markdown, original length:', enhancedText.length, 'plain length:', plainText.length);
-
         if (inputElement.tagName === 'TEXTAREA' || inputElement.tagName === 'INPUT') {
             // For regular form inputs, set value and trigger change event
-            inputElement.value = plainText;
+            inputElement.value = enhancedText;
             // Only dispatch input event for non-React inputs to avoid infinite loops
             inputElement.dispatchEvent(new Event('input', { bubbles: true }));
         } else if (inputElement.contentEditable === 'true') {
-            // For contentEditable elements (like ChatGPT), use plain text
-            // ChatGPT's input doesn't render markdown, so we strip it
+            // For contentEditable elements (like ChatGPT), avoid dispatching events
+            // as they may be React-controlled and cause infinite re-renders
             console.log('PromptCrafter: Setting contentEditable text without dispatching events to avoid React conflicts');
 
-            // Use textContent for plain text (no HTML/markdown)
-            inputElement.textContent = plainText;
+            // Use innerHTML instead of textContent to preserve any formatting
+            inputElement.innerHTML = enhancedText;
 
             // Don't dispatch 'input' event for React components to avoid infinite loops
             // React will handle the change through its own mechanisms
@@ -677,15 +460,7 @@ class PromptCrafterInjector {
             inputElement.focus();
             // Move cursor to end of text
             if (inputElement.setSelectionRange) {
-                inputElement.setSelectionRange(plainText.length, plainText.length);
-            } else if (window.getSelection && document.createRange) {
-                // For contentEditable elements
-                const range = document.createRange();
-                range.selectNodeContents(inputElement);
-                range.collapse(false);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                inputElement.setSelectionRange(enhancedText.length, enhancedText.length);
             }
         } catch (e) {
             console.log('PromptCrafter: Could not focus input element:', e.message);
@@ -693,30 +468,20 @@ class PromptCrafterInjector {
     }
 
     showLoading(inputElement) {
-        // Handle different button types
-        const chatGPTBtn = document.getElementById('promptcrafter-enhance-btn');
-        const scholarBtn = document.getElementById('scholar-enhance-btn');
-        const genericBtn = inputElement.parentNode.querySelector('.promptcrafter-btn');
-
-        const button = chatGPTBtn || scholarBtn || genericBtn;
+        const button = inputElement.parentNode.querySelector('.promptcrafter-btn');
         if (button) {
             button.textContent = '⏳ Enhancing...';
             button.disabled = true;
-            button.style.opacity = '0.7';
+            button.classList.add('loading');
         }
     }
 
     hideLoading(inputElement) {
-        // Handle different button types
-        const chatGPTBtn = document.getElementById('promptcrafter-enhance-btn');
-        const scholarBtn = document.getElementById('scholar-enhance-btn');
-        const genericBtn = inputElement.parentNode.querySelector('.promptcrafter-btn');
-
-        const button = chatGPTBtn || scholarBtn || genericBtn;
+        const button = inputElement.parentNode.querySelector('.promptcrafter-btn');
         if (button) {
-            button.textContent = button.id === 'scholar-enhance-btn' ? '🎓 Enhance Query' : '✨ Enhance Prompt';
+            button.textContent = '✨ Enhance';
             button.disabled = false;
-            button.style.opacity = '1';
+            button.classList.remove('loading');
         }
     }
 
@@ -749,8 +514,8 @@ class PromptCrafterInjector {
                         if (node.nodeType === Node.ELEMENT_NODE) {
                             // Check if new input elements were added
                             if (node.matches &&
-                                (node.matches('textarea, input[type="text"], [contenteditable="true"]') ||
-                                    node.querySelector('textarea, input[type="text"], [contenteditable="true"]'))) {
+                               (node.matches('textarea, input[type="text"], [contenteditable="true"]') ||
+                                node.querySelector('textarea, input[type="text"], [contenteditable="true"]'))) {
                                 shouldCheck = true;
                             }
                         }
