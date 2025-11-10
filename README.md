@@ -13,13 +13,21 @@ _**PromptCrafter is a web application that enhances user prompts using AI and ru
 - LangChain4j
 - OpenAI
 
-### __Process:__
+### __Process when enhance button is clicked in ChatGPT:__
+- The enhance button is clicked in the prompt bar of ChatGPT.
+- The original prompt is sent to the API endpoint.
+- The API endpoint then calls the prompt enhancement service, as the original prompt is then put into the prompt template. The template contains the original prompt, and detailed instruction to enhance the prompt, according to the style and context chosen by the user.
+- The prompt template is then sent to the OpenAI API for enhancement.
+- The enhanced text, which is the enhanced prompt, is then returned to the API endpoint.
+- The API endpoint then returns the enhanced text to the user, which is then written into the prompt bar of ChatGPT itself.
+
+### __Process within Extension Popup:__
 - User enters the original prompt, and chooses the style and the context from the dropdown menus.
 - The request is passed as a curl request, to the API rewrite endpoint.
 - The API endpoint then calls the prompt enhancement service, as the original prompt is then put into the prompt template. The template contains the original prompt, and detailed instruction to enhance the prompt, according to the style and context chosen by the user.
 - The prompt template is then sent to the OpenAI API for enhancement.
 - The enhanced text, which is the enhanced prompt, is then returned to the API endpoint.
-- The API endpoint then returns the enhanced text to the user.
+- The API endpoint then returns the enhanced text to the user, which is then displayed in the popup.
 
 ### __Problems Faced:__
 - HuggingFace API was not working, so had to switch to OpenAI API for model integration.
@@ -38,7 +46,6 @@ _**PromptCrafter is a web application that enhances user prompts using AI and ru
 - implementation for the frontend (with the prompt history response and the prompt response).
 - implementation for the API (with the prompt enhancement controller and the prompt enhancement service).
 - implementation for the API key and the curl request.
-
-### __Current Next Step:__
-- Prompt history implementation, database integration.
-- Frontend UI enhancements.
+- implementation for the user interface (with the popup html, css and js files).
+- implementation for the history (with the history response and the history service).
+- implementation of enhance button directly in the prompt bar of ChatGPT.
