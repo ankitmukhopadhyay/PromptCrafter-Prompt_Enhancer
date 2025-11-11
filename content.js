@@ -18,14 +18,14 @@ class PromptCrafterInjector {
     detectContext() {
         const url = window.location.href;
         console.log('PromptCrafter: Detecting context for URL:', url);
-
+        
         if (url.includes('chat.openai.com') || url.includes('chatgpt.com')) {
             console.log('PromptCrafter: ✅ Detected CHATGPT context');
             return 'CHATGPT';
         }
         if (url.includes('scholar.google.com')) return 'GOOGLE_SCHOLAR';
         if (url.includes('google.com/search')) return 'GOOGLE_SCHOLAR';
-
+        
         console.log('PromptCrafter: Detected GENERAL context');
         return 'GENERAL';
     }
@@ -33,19 +33,19 @@ class PromptCrafterInjector {
     async init() {
         console.log('PromptCrafter: Initializing for context:', this.context);
 
-        // REMOVED: Test button for debugging (red 'Test Enhance' button)
-        // this.addForceShowButton();
+
+        this.addForceShowButton();
 
         // For ChatGPT, inject UI immediately and also after delays
         if (this.context === 'CHATGPT') {
             console.log('PromptCrafter: ChatGPT detected - starting injection sequence');
-
+            
             // Try immediately
             setTimeout(() => this.injectUI(), 500);
-
+            
             // Try after 2 seconds
             setTimeout(() => this.injectUI(), 2000);
-
+            
             // Try after 5 seconds
             setTimeout(() => this.injectUI(), 5000);
         } else {
@@ -139,7 +139,7 @@ class PromptCrafterInjector {
 
     injectUI() {
         console.log('PromptCrafter: injectUI() called for context:', this.context);
-
+        
         try {
             if (this.context === 'CHATGPT') {
                 console.log('PromptCrafter: Calling injectChatGPTEnhancer()...');
@@ -168,7 +168,7 @@ class PromptCrafterInjector {
 
             // Try the primary selector first
             let input = document.querySelector('#prompt-textarea');
-
+            
             if (input) {
                 console.log('PromptCrafter: ✅ Found #prompt-textarea!', {
                     tagName: input.tagName,
@@ -187,11 +187,11 @@ class PromptCrafterInjector {
                 }
             } else {
                 console.log('PromptCrafter: #prompt-textarea not found yet');
-
+                
                 // Debug: Show what we can find
                 const allDivs = document.querySelectorAll('div[contenteditable="true"]');
                 console.log(`PromptCrafter: Found ${allDivs.length} contenteditable divs`);
-
+                
                 // Try backup selectors
                 const backupSelectors = [
                     'div.ProseMirror[contenteditable="true"]',
@@ -358,11 +358,11 @@ class PromptCrafterInjector {
         const hasSearchPlaceholder = /search|query|term/i.test(input.placeholder || '');
         const hasScholarName = input.name === 'q';
         const isInScholarForm = input.closest('form') && input.closest('form').action &&
-            input.closest('form').action.includes('scholar');
+                               input.closest('form').action.includes('scholar');
 
         // Google Scholar search box should be prominent and in the right context
         return isLargeEnough && isVisible && isNotHidden &&
-            (hasScholarClass || hasSearchPlaceholder || hasScholarName || isInScholarForm);
+               (hasScholarClass || hasSearchPlaceholder || hasScholarName || isInScholarForm);
     }
 
     addScholarEnhancementButton(inputElement) {
@@ -462,7 +462,7 @@ class PromptCrafterInjector {
         button.className = 'promptcrafter-enhance-btn';
         button.innerHTML = '✨ Enhance Prompt';
         button.title = 'Enhance the text in ChatGPT input (DETAILED style, GENERAL context)';
-
+        
         // Use EXACT same styling as test button, but positioned below it
         button.style.cssText = `
             position: fixed !important;
@@ -515,7 +515,7 @@ class PromptCrafterInjector {
 
     isVisible(element) {
         return element.offsetWidth > 0 && element.offsetHeight > 0 &&
-            window.getComputedStyle(element).visibility !== 'hidden';
+               window.getComputedStyle(element).visibility !== 'hidden';
     }
 
     async handleEnhancement(inputElement, siteType) {
@@ -613,7 +613,7 @@ class PromptCrafterInjector {
      */
     stripMarkdown(text) {
         if (!text) return '';
-
+        
         return text
             // Remove headers (### Header -> Header)
             .replace(/^#{1,6}\s+(.+)$/gm, '$1')
@@ -749,8 +749,8 @@ class PromptCrafterInjector {
                         if (node.nodeType === Node.ELEMENT_NODE) {
                             // Check if new input elements were added
                             if (node.matches &&
-                                (node.matches('textarea, input[type="text"], [contenteditable="true"]') ||
-                                    node.querySelector('textarea, input[type="text"], [contenteditable="true"]'))) {
+                               (node.matches('textarea, input[type="text"], [contenteditable="true"]') ||
+                                node.querySelector('textarea, input[type="text"], [contenteditable="true"]'))) {
                                 shouldCheck = true;
                             }
                         }
