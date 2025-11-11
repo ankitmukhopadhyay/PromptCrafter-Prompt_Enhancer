@@ -9,7 +9,7 @@ _**PromptCrafter is a web application that enhances user prompts using AI and ru
 ### __Tech Stack:__
 - Spring Boot
 - Java
-- MySQL
+- H2
 - LangChain4j
 - OpenAI
 
