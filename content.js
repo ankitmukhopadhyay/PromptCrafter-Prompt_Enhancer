@@ -33,8 +33,8 @@ class PromptCrafterInjector {
     async init() {
         console.log('PromptCrafter: Initializing for context:', this.context);
 
-
-        this.addForceShowButton();
+        // REMOVED: Test button for debugging (red 'Test Enhance' button)
+        // this.addForceShowButton();
 
         // For ChatGPT, inject UI immediately and also after delays
         if (this.context === 'CHATGPT') {
